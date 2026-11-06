@@ -71,3 +71,14 @@ html.rebuild-running #root>*:not(.rebuild-overlay){visibility:hidden!important}
 .rebuild-cursor.cursor-team-3 span{background:#c9aa75;box-shadow:0 0 13px #c9aa7588}
 .rebuild-cursor.cursor-team-3 b{color:#d7c5a4;border-color:#c9aa7566}
 @media(max-width:600px){.rebuild-cursor b{font-size:5px;padding:2px 3px}.rebuild-cursor i{width:13px}}
+
+/* Cleaner cursor choreography: compact, aligned and quiet. */
+.rebuild-cursor{width:22px;height:22px;transition:transform .72s cubic-bezier(.2,.85,.2,1),opacity .28s ease;filter:drop-shadow(0 1px 3px #000)}
+.rebuild-cursor span{width:7px;height:7px;border:1px solid #eee3d2;border-radius:50%;box-shadow:0 0 8px currentColor}
+.rebuild-cursor i{left:6px;top:7px;width:13px;height:1px;opacity:.65}
+.rebuild-cursor b{left:10px;top:11px;padding:2px 4px;font-size:5px;letter-spacing:.5px;background:#090a0beF}
+.rebuild-cursor:nth-of-type(2n) span{border-radius:50%;transform:none}
+.rebuild-cursor:nth-of-type(3n) i,.rebuild-cursor:nth-of-type(4n) i{transform:rotate(45deg)}
+.rebuild-cursor.cursor-working span{animation:cursor-tap .7s ease-in-out infinite alternate}
+.rebuild-hud{font-size:7px;opacity:.55}
+@media(max-width:600px){.rebuild-cursor b{font-size:5px;padding:2px 3px}.rebuild-cursor i{width:11px}}
