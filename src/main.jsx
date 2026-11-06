@@ -21,7 +21,7 @@ function Reveal({ children, delay = 0 }) {
 
 function Swarm({ onDone }) {
   const stageRef = React.useRef(null);
-  const cursorRef = React.useRef(null);
+  const cursorRefs = [React.useRef(null), React.useRef(null), React.useRef(null)];
   useEffect(() => {
     const stage = stageRef.current;
     const source = document.getElementById("root");
@@ -36,39 +36,56 @@ function Swarm({ onDone }) {
     document.documentElement.classList.add("rebuild-running");
     const selector = ".header,.hero-topline,.hero-copy,.hero-art,.hero-bottom,.metric-card,.section-label,.about-grid,.education-card,.focus-row,.timeline-row,.project-card,.contact-foot,.footer";
     const items = [...clone.querySelectorAll(selector)];
-    items.forEach(el => { el.classList.add("rebuild-item"); });
-    const cursor = cursorRef.current;
+    items.forEach(el => el.classList.add("rebuild-item"));
+    const cursors = cursorRefs.map(ref => ref.current);
     const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
     let cancelled = false;
+    const roles = [
+      {name:"LAYOUT", owns:["header","hero-art","hero-bottom","metric-card","section-label"]},
+      {name:"CONTENT", owns:["hero-copy","about-grid","education-card","timeline-row","contact-foot"]},
+      {name:"DETAIL", owns:["hero-topline","focus-row","project-card","footer"]}
+    ];
+    const owner = el => {
+      const cls = el.className?.toString() || "";
+      const role = roles.findIndex(r => r.owns.some(name => cls.includes(name)));
+      return role < 0 ? 0 : role;
+    };
     const moveCursor = (cursor, el, index) => {
       if (!cursor || !el) return;
       const r = el.getBoundingClientRect();
-      const x = Math.max(18,Math.min(innerWidth-25,r.left+r.width*(.2+(index%4)*.18)));
-      const y = Math.max(20,Math.min(innerHeight-30,r.top+Math.min(r.height*.45,45)));
+      const x = Math.max(18,Math.min(innerWidth-35,r.left+r.width*(.18+(index%3)*.25)));
+      const y = Math.max(24,Math.min(innerHeight-35,r.top+Math.min(r.height*.48,48)));
       cursor.style.transform = `translate3d(${x}px,${y}px,0)`;
       cursor.style.opacity = "1";
     };
     const build = async () => {
-      await wait(250);
+      await wait(300);
       for (let i=0;i<items.length;i++) {
         if (cancelled) return;
         const el=items[i];
         const top=el.offsetTop;
-        const target=Math.max(0,top- Math.min(110,innerHeight*.14));
-        stage.scrollTo({top:target,behavior:"smooth"});
-        await wait(240);
+        stage.scrollTo({top:Math.max(0,top-Math.min(110,innerHeight*.14)),behavior:"smooth"});
+        await wait(300);
+        const roleIndex=owner(el);
+        const cursor=cursors[roleIndex];
+        const badge=cursor?.querySelector("b");
+        if(badge) badge.textContent=roles[roleIndex].name;
         moveCursor(cursor,el,i);
+        await wait(280);
+        cursor?.classList.add("cursor-working");
         el.classList.add("is-building");
-        await wait(95);
+        el.classList.add("cursor-touched");
+        await wait(260);
         el.classList.add("is-built");
-        await wait(115);
-        if (i%5===4) await wait(120);
+        el.classList.remove("is-building");
+        cursor?.classList.remove("cursor-working");
+        if (i%4===3) await wait(180);
       }
       if (cancelled) return;
       stage.scrollTo({top:0,behavior:"smooth"});
-      await wait(650);
+      await wait(700);
       stage.classList.add("rebuild-finish");
-      if(cursor) cursor.style.opacity="0";
+      cursors.forEach(c=>{if(c)c.style.opacity="0"});
       await wait(550);
       document.documentElement.classList.remove("rebuild-running");
       window.scrollTo(0,originalScroll);
@@ -84,8 +101,8 @@ function Swarm({ onDone }) {
   },[onDone]);
   return <div className="rebuild-overlay" aria-hidden="true">
     <div className="rebuild-stage" ref={stageRef}/>
-    <div className="rebuild-cursor" ref={cursorRef}><span/><i/></div>
-    <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>DESIGN SYSTEM · 2026</span></div>
+    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1}`} ref={ref} key={i}><span/><i/><b>{["LAYOUT","CONTENT","DETAIL"][i]}</b></div>)}
+    <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>3 SPECIALISTS · WORKING IN PARALLEL</span></div>
   </div>;
 }
 
