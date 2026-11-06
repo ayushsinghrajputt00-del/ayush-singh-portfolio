@@ -20,30 +20,73 @@ function Reveal({ children, delay = 0 }) {
 }
 
 function Swarm({ onDone }) {
+  const stageRef = React.useRef(null);
+  const cursorRefs = [React.useRef(null), React.useRef(null), React.useRef(null)];
   useEffect(() => {
-    const canvas = document.querySelector(".swarm-canvas");
-    const ctx = canvas.getContext("2d");
-    let raf = 0, frame = 0, alive = true, w = innerWidth, h = innerHeight;
-    const dpr = Math.min(devicePixelRatio || 1, 2), gold = "#c9aa75";
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const ease = t => 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
-    const resize = () => { w = innerWidth; h = innerHeight; canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr); canvas.style.width = w+"px"; canvas.style.height = h+"px"; ctx.setTransform(dpr,0,0,dpr,0,0); };
-    resize(); addEventListener("resize", resize);
-    document.documentElement.classList.add("swarm-running");
-    const targets = [...document.querySelectorAll("header,.hero-copy,.hero-art,.section-label,h1,h2,.metric-card,.focus-row,.timeline-row,.project-card,.contact-foot")].map((el,i)=>{const r=el.getBoundingClientRect();return r.width>2&&r.height>2&&r.bottom>0&&r.top<h?{x:r.left,y:r.top,w:r.width,h:r.height,i}:null}).filter(Boolean);
-    const colors=["#f1ede6","#c9aa75","#c76b59","#9da9b4"];
-    const agents=Array.from({length:22},(_,i)=>({x:w/2,y:h/2,phase:Math.random()*6.28,target:i%Math.max(1,targets.length),trail:[]}));
-    const draw=()=>{if(!alive)return;frame++;const p=ease((frame-20)/(reduced?35:220));const fade=frame>(reduced?75:300)?1-ease((frame-(reduced?75:300))/(reduced?20:55)):1;
-      ctx.clearRect(0,0,w,h);ctx.fillStyle="rgba(5,6,7,.985)";ctx.fillRect(0,0,w,h);
-      ctx.save();ctx.globalAlpha=.13*fade;ctx.strokeStyle=gold;for(let x=0;x<w;x+=36){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.restore();
-      targets.forEach((r,i)=>{const q=ease((frame-22-i*3)/(reduced?40:120));if(!q)return;ctx.save();ctx.globalAlpha=fade*(.2+.8*q);ctx.strokeStyle=i%3===0?gold:"#a7a39b";ctx.setLineDash([4,5]);ctx.strokeRect(r.x,r.y,r.w,r.h);ctx.setLineDash([]);ctx.fillStyle="rgba(201,170,117,.12)";ctx.fillRect(r.x,r.y,r.w*q,r.h);ctx.restore()});
-      agents.forEach((a,i)=>{const r=targets[a.target]||{x:w/2,y:h/2,w:1,h:1};const orbit=w/2+Math.cos(frame*.025+a.phase)*Math.min(w*.32,120);const ox=h/2+Math.sin(frame*.03+a.phase)*Math.min(h*.25,80);const tx=r.x+r.w*(.15+.7*(i%6)/5),ty=r.y+r.h*(.2+.6*(i%4)/3);a.x+=(orbit+(tx-orbit)*p-a.x)*.12;a.y+=(ox+(ty-ox)*p-a.y)*.12;a.trail.push([a.x,a.y]);if(a.trail.length>9)a.trail.shift();ctx.beginPath();a.trail.forEach((v,j)=>j?ctx.lineTo(...v):ctx.moveTo(...v));ctx.strokeStyle=colors[i%4]+"66";ctx.stroke();ctx.fillStyle=colors[i%4];ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(a.x,a.y+13);ctx.lineTo(a.x+4,a.y+9);ctx.fill()});
-      ctx.fillStyle=gold;ctx.font="9px monospace";ctx.fillText("AS / INTERFACE SEQUENCE",22,h-24);ctx.textAlign="right";ctx.fillText("BUILD "+String(Math.round(p*100)).padStart(3,"0")+"%",w-22,h-24);ctx.textAlign="left";
-      if(frame<(reduced?100:355))raf=requestAnimationFrame(draw);else{document.documentElement.classList.remove("swarm-running");onDone()}
-    };raf=requestAnimationFrame(draw);
-    return()=>{alive=false;cancelAnimationFrame(raf);removeEventListener("resize",resize);document.documentElement.classList.remove("swarm-running")};
+    const stage = stageRef.current;
+    const source = document.getElementById("root");
+    if (!stage || !source) return;
+    const originalScroll = window.scrollY;
+    const clone = source.cloneNode(true);
+    clone.id = "rebuild-copy";
+    clone.querySelectorAll(".rebuild-overlay,script").forEach(node => node.remove());
+    clone.querySelectorAll(".progress,.swarm-canvas").forEach(node => node.remove());
+    clone.querySelectorAll("a,button").forEach(node => { node.setAttribute("tabindex","-1"); node.style.pointerEvents="none"; });
+    stage.appendChild(clone);
+    document.documentElement.classList.add("rebuild-running");
+    const selector = ".header,.hero-topline,.hero-copy,.hero-art,.hero-bottom,.metric-card,.section-label,.about-grid,.focus-row,.timeline-row,.project-card,.contact-foot,.footer";
+    const items = [...clone.querySelectorAll(selector)];
+    items.forEach(el => { el.classList.add("rebuild-item"); });
+    const cursors = cursorRefs.map(ref => ref.current);
+    const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
+    let cancelled = false;
+    const moveCursor = (cursor, el, index) => {
+      if (!cursor || !el) return;
+      const r = el.getBoundingClientRect();
+      const x = Math.max(18,Math.min(innerWidth-25,r.left+r.width*(.2+(index%4)*.18)));
+      const y = Math.max(20,Math.min(innerHeight-30,r.top+Math.min(r.height*.45,45)));
+      cursor.style.transform = `translate3d(${x}px,${y}px,0)`;
+      cursor.style.opacity = "1";
+    };
+    const build = async () => {
+      await wait(250);
+      for (let i=0;i<items.length;i++) {
+        if (cancelled) return;
+        const el=items[i];
+        const top=el.offsetTop;
+        const target=Math.max(0,top- Math.min(110,innerHeight*.14));
+        stage.scrollTo({top:target,behavior:"smooth"});
+        await wait(240);
+        moveCursor(cursors[i%3],el,i);
+        el.classList.add("is-building");
+        await wait(95);
+        el.classList.add("is-built");
+        await wait(115);
+        if (i%5===4) await wait(120);
+      }
+      if (cancelled) return;
+      stage.scrollTo({top:0,behavior:"smooth"});
+      await wait(650);
+      stage.classList.add("rebuild-finish");
+      cursors.forEach(c=>{if(c)c.style.opacity="0"});
+      await wait(550);
+      document.documentElement.classList.remove("rebuild-running");
+      window.scrollTo(0,originalScroll);
+      onDone();
+    };
+    build();
+    return () => {
+      cancelled=true;
+      document.documentElement.classList.remove("rebuild-running");
+      window.scrollTo(0,originalScroll);
+      clone.remove();
+    };
   },[onDone]);
-  return <canvas className="swarm-canvas" aria-hidden="true"/>;
+  return <div className="rebuild-overlay" aria-hidden="true">
+    <div className="rebuild-stage" ref={stageRef}/>
+    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1}`} ref={ref} key={i}><span/><i/></div>)}
+    <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>DESIGN SYSTEM · 2026</span></div>
+  </div>;
 }
 
 function App() {
