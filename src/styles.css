@@ -18,16 +18,12 @@ html.rebuild-running #root>*:not(.rebuild-overlay){visibility:hidden!important}
 .rebuild-stage.rebuild-finish{opacity:0;transition:opacity .55s ease}
 @media(prefers-reduced-motion:reduce){.rebuild-overlay,.rebuild-item,.rebuild-cursor{transition-duration:.01ms!important}}
 
-/* Explicitly requested motion remains animated even when the device prefers reduced motion. */
-.hero-motion{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(201,170,117,.5);background:transparent;color:#d9cdb9;padding:13px 15px;font:8px var(--mono);letter-spacing:1.2px;cursor:pointer;transition:background .25s,border-color .25s,color .25s}
-.hero-motion span{color:var(--red);font-size:10px}
-.hero-motion:hover{background:#c45b4d18;border-color:var(--red);color:#fff}
-.hero-motion:disabled{opacity:.55;cursor:wait}
-.rebuild-cursor{width:30px;height:38px}
-.rebuild-cursor span{left:0;top:0;width:17px;height:22px;border:1px solid #f5eee2;border-radius:2px 9px 3px 2px;clip-path:polygon(0 0,100% 72%,58% 78%,76% 100%,60% 100%,43% 82%,20% 100%);background:#c45b4d;box-shadow:0 0 20px #c45b4d99}
-.rebuild-cursor i{left:14px;top:18px;width:30px;height:2px;background:linear-gradient(90deg,#c9aa75,transparent);transform:rotate(42deg);transform-origin:left}
-.rebuild-cursor:after{content:"AGENT";position:absolute;left:23px;top:21px;color:#c9aa75;font:7px var(--mono);letter-spacing:1px;white-space:nowrap;text-shadow:0 1px 4px #000}
-.cursor-2:after{content:"LAYOUT"}.cursor-3:after{content:"DETAIL"}
-/* The user explicitly starts this effect, so do not collapse its transitions under OS reduced-motion settings. */
-@media(prefers-reduced-motion:reduce){.rebuild-overlay,.rebuild-item,.rebuild-cursor{transition-duration:.48s!important;animation-duration:.48s!important}}
-@media(max-width:680px){.hero-links{flex-wrap:wrap;gap:14px}.hero-motion{padding:12px 13px}}
+
+/* The build sequence is automatic on every fresh visit, not a user-triggered demo. */
+.rebuild-overlay{background:#08090a}
+.rebuild-stage{scroll-behavior:auto}
+#rebuild-copy .rebuild-item{transition:opacity .52s ease,transform .68s cubic-bezier(.2,.8,.2,1),clip-path .7s cubic-bezier(.2,.8,.2,1)}
+#rebuild-copy .rebuild-item.is-building{opacity:.82;clip-path:inset(0 0 38% 0)}
+.rebuild-cursor{width:26px;height:32px}
+.rebuild-cursor span{width:12px;height:12px;border-radius:2px;transform:rotate(45deg);box-shadow:0 0 22px #c45b4d88}
+.rebuild-cursor i{width:34px;opacity:.85}
