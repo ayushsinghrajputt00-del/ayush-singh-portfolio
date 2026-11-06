@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { createRoot } from "react-dom/client";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import "./styles.css";
 
 const focus = [
@@ -14,113 +14,16 @@ const journey = [
   ["Execution", "Turn plans into action", "Create, test, learn from feedback and improve the next attempt."]
 ];
 
+const MotionContext = React.createContext(true);
 function Reveal({ children, delay = 0 }) {
   const reduce = useReducedMotion();
-  return <motion.div initial={reduce ? false : { opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .15 }} transition={{ duration: .7, delay, ease: [.22, 1, .36, 1] }}>{children}</motion.div>;
-}
-
-function Swarm({ onDone }) {
-  const stageRef = React.useRef(null);
-  const cursorRefs = Array.from({length:15},()=>React.createRef());
-  useEffect(() => {
-    const stage = stageRef.current;
-    const source = document.getElementById("root");
-    if (!stage || !source) return;
-    const originalScroll = window.scrollY;
-    const clone = source.cloneNode(true);
-    clone.id = "rebuild-copy";
-    clone.querySelectorAll(".rebuild-overlay,script").forEach(node => node.remove());
-    clone.querySelectorAll(".progress,.swarm-canvas").forEach(node => node.remove());
-    clone.querySelectorAll("a,button").forEach(node => { node.setAttribute("tabindex","-1"); node.style.pointerEvents="none"; });
-    stage.appendChild(clone);
-    document.documentElement.classList.add("rebuild-running");
-    const selector = ".header,.hero-topline,.hero-copy,.hero-art,.hero-bottom,.metric-card,.section-label,.about-grid,.education-card,.focus-row,.timeline-row,.project-card,.contact-foot,.footer";
-    const items = [...clone.querySelectorAll(selector)];
-    items.forEach(el => el.classList.add("rebuild-item"));
-    const cursors = cursorRefs.map(ref => ref.current);
-    const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
-    let cancelled = false;
-    const teams = [
-      {name:"LAYOUT",start:0,targets:["header","hero-art","hero-bottom","metric-card","section-label"]},
-      {name:"CONTENT",start:5,targets:["hero-copy","about-grid","education-card","timeline-row","contact-foot"]},
-      {name:"DETAIL",start:10,targets:["hero-topline","focus-row","project-card","footer"]}
-    ];
-    const teamFor = el => {
-      const cls=el.className?.toString()||"";
-      const i=teams.findIndex(t=>t.targets.some(name=>cls.includes(name)));
-      return i<0?0:i;
-    };
-    const moveTeam = (teamIndex, el, itemIndex) => {
-      const team=teams[teamIndex];
-      const r=el.getBoundingClientRect();
-      cursors.forEach((cursor,index)=>{
-        if(!cursor) return;
-        const active=index>=team.start && index<team.start+5;
-        cursor.style.opacity=active?"1":"0";
-        cursor.classList.remove("cursor-working");
-      });
-      // Five agents use a tidy staggered line around the element instead of piling onto one point.
-      for(let j=0;j<5;j++){
-        const cursor=cursors[team.start+j];
-        if(!cursor) continue;
-        const spread=Math.min(48,Math.max(24,r.width/12));
-        const x=Math.max(18,Math.min(innerWidth-42,r.left+r.width*.5+(j-2)*spread));
-        const y=Math.max(24,Math.min(innerHeight-38,r.top+Math.min(r.height*.22,22)+(j%2)*13));
-        cursor.style.transform=`translate3d(${x}px,${y}px,0)`;
-        const label=cursor.querySelector("b");
-        if(label) label.textContent=j===0?team.name:"";
-      }
-    };
-    const setTeamWorking = (teamIndex,active) => {
-      const team=teams[teamIndex];
-      for(let j=0;j<5;j++) cursors[team.start+j]?.classList.toggle("cursor-working",active);
-    };
-    const build = async () => {
-      await wait(300);
-      for(let i=0;i<items.length;i++){
-        if(cancelled) return;
-        const el=items[i];
-        const target=Math.max(0,el.offsetTop-Math.min(110,innerHeight*.14));
-        stage.scrollTo({top:target,behavior:"smooth"});
-        await wait(300);
-        const teamIndex=teamFor(el);
-        moveTeam(teamIndex,el,i);
-        setTeamWorking(teamIndex,true);
-        el.classList.add("is-building","cursor-touched");
-        await wait(430);
-        el.classList.add("is-built");
-        el.classList.remove("is-building");
-        setTeamWorking(teamIndex,false);
-        if(i%4===3) await wait(180);
-      }
-      if(cancelled) return;
-      stage.scrollTo({top:0,behavior:"smooth"});
-      await wait(700);
-      stage.classList.add("rebuild-finish");
-      cursors.forEach(c=>{if(c)c.style.opacity="0"});
-      await wait(550);
-      document.documentElement.classList.remove("rebuild-running");
-      window.scrollTo(0,originalScroll);
-      onDone();
-    };
-    build();
-    return () => {
-      cancelled=true;
-      document.documentElement.classList.remove("rebuild-running");
-      window.scrollTo(0,originalScroll);
-      clone.remove();
-    };
-  },[onDone]);
-  return <div className="rebuild-overlay" aria-hidden="true">
-    <div className="rebuild-stage" ref={stageRef}/>
-    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1} cursor-team-${Math.floor(i/5)+1}`} ref={ref} key={i}><span/><i/><b>{i%5===0?["LAYOUT","CONTENT","DETAIL"][Math.floor(i/5)]:""}</b></div>)}
-    <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>15 CURSORS · 3 WORK GROUPS</span></div>
-  </div>;
+  const motionEnabled = useContext(MotionContext);
+  const active = motionEnabled && !reduce;
+  return <motion.div initial={active ? { opacity: 0, y: 22 } : false} whileInView={active ? { opacity: 1, y: 0 } : undefined} viewport={{ once: true, amount: .15 }} transition={{ duration: .7, delay, ease: [.22, 1, .36, 1] }}>{children}</motion.div>;
 }
 
 function App() {
-  const [menu,setMenu]=useState(false),[swarm,setSwarm]=useState(true);
-  const finish=React.useCallback(()=>setSwarm(false),[]);
+  const [menu,setMenu]=useState(false),[motionOn,setMotionOn]=useState(true);
   useEffect(()=>{const scroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty("--progress",max>0?scrollY/max*100+"%":"0%")};addEventListener("scroll",scroll,{passive:true});scroll();return()=>removeEventListener("scroll",scroll)},[]);
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Work","#work"]];
   return <>
@@ -128,7 +31,7 @@ function App() {
     <header className="header">
       <a className="brand" href="#top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu">☰</button>
-      <nav className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<a className="nav-cta" href="#contact">Initiate contact ↗</a></nav>
+      <nav className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<button className="motion-button" onClick={()=>setMotionOn(v=>!v)} aria-pressed={motionOn}><i/> MOTION / {motionOn?"ON":"OFF"}</button><a className="nav-cta" href="#contact">Initiate contact ↗</a></nav>
     </header>
     <main id="top">
       <section className="hero shell">
@@ -171,7 +74,7 @@ function App() {
         <div className="focus-list">{focus.map(([n,t,d],i)=><Reveal key={n} delay={i*.07}><article className="focus-row"><span className="number">{n}</span><h3>{t}</h3><p>{d}</p><b>↗</b></article></Reveal>)}</div>
       </section>
       <section className="section shell" id="journey">
-        <Reveal><div className="section-label"><span>04 / PERSONAL JOURNEY</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Progress is a practice.<br/><em>Not a finish line.</em></h2></Reveal>
+        <Reveal><div className="section-label"><span>04 / LEARNING JOURNEY</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Progress is a practice.<br/><em>Not a finish line.</em></h2></Reveal>
         <div className="timeline">{journey.map(([t,s,d],i)=><Reveal key={t} delay={i*.1}><article className="timeline-row"><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>↗</b></article></Reveal>)}</div>
       </section>
       <section className="section shell" id="work">
@@ -182,10 +85,9 @@ function App() {
           <Reveal delay={.16}><article className="project-card"><div className="project-visual visual-three"><span>AS / 003</span><b>03</b><i>EXPERIMENTS</i></div><div className="project-meta"><small>ONGOING / OPEN ENDED</small><h3>Digital Experiments</h3><p>Learning by making: testing tools, exploring ideas and improving through iteration.</p><span>RESEARCH · BUILD · ITERATE</span></div></article></Reveal>
         </div>
       </section>
-      <section className="contact shell" id="contact"><Reveal><div className="section-label"><span>05 / DIRECT CONNECT</span><span>OPEN TO GOOD CONVERSATIONS</span></div><p className="gold-label">HAVE AN IDEA OR OPPORTUNITY?</p><h2>Let's build<br/><em>something real.</em></h2><div className="contact-foot"><div><p>For collaborations, opportunities or a thoughtful conversation, reach out directly.</p><div className="contact-details"><a href="mailto:ayushsinghrajput00@gmail.com">ayushsinghrajput00@gmail.com</a><a href="tel:+919354895707">+91 93548 95707</a></div></div><div className="contact-links"><a className="button" href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">Instagram ↗</a><a className="social-link" href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noreferrer">GitHub ↗</a></div></div></Reveal></section>
+      <section className="contact shell" id="contact"><Reveal><div className="section-label"><span>06 / DIRECT CONNECT</span><span>OPEN TO GOOD CONVERSATIONS</span></div><p className="gold-label">HAVE AN IDEA OR OPPORTUNITY?</p><h2>Let's build<br/><em>something real.</em></h2><div className="contact-foot"><div><p>For collaborations, opportunities or a thoughtful conversation, reach out directly.</p><div className="contact-details"><a href="mailto:ayushsinghrajput00@gmail.com">ayushsinghrajput00@gmail.com</a><a href="tel:+919354895707">+91 93548 95707</a></div></div><div className="contact-links"><a className="button" href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">Instagram ↗</a><a className="social-link" href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noreferrer">GitHub ↗</a></div></div></Reveal></section>
     </main>
     <footer className="footer shell"><a className="brand" href="#top">AS<span>_</span></a><span>© {new Date().getFullYear()} AYUSH SINGH / INDIA</span><a href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">INSTAGRAM ↗</a><a href="#top">BACK TO TOP ↑</a><small>BUILT WITH INTENTION.</small></footer>
-    <AnimatePresence>{swarm&&<Swarm onDone={finish}/>}</AnimatePresence>
-  </>;
+  </></MotionContext.Provider>;
 }
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);
