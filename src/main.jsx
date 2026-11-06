@@ -99,7 +99,7 @@ function App() {
     <header className="header">
       <a className="brand" href="#top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu">☰</button>
-      <nav className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<button className="motion-button" onClick={()=>setSwarm(true)} disabled={swarm}><i/> {swarm?"Building…":"Motion / ON"}</button><a className="nav-cta" href="#contact">Initiate contact ↗</a></nav>
+      <nav className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<button className="motion-button" onClick={()=>setSwarm(true)} disabled={swarm}><i/> {swarm?"Building…":"Replay build"}</button><a className="nav-cta" href="#contact">Initiate contact ↗</a></nav>
     </header>
     <main id="top">
       <section className="hero shell">
@@ -109,7 +109,7 @@ function App() {
             <p className="gold-label">STUDENT · CREATOR · CURIOUS MIND</p>
             <h1>AYUSH<span className="red-dot">.</span><br/><em>Singh</em></h1>
             <p className="hero-desc">Exploring technology, creativity and new ideas. Learning by doing, staying curious and building things that feel meaningful.</p>
-            <div className="hero-links"><a className="button" href="#about">Explore profile <span>↘</span></a><a className="under-link" href="#work">View selected work ↗</a></div>
+            <div className="hero-links"><a className="button" href="#about">Explore profile <span>↘</span></a><a className="under-link" href="#work">View selected work ↗</a><button className="hero-motion" onClick={()=>setSwarm(true)} disabled={swarm}><span>▶</span> {swarm?"ASSEMBLING…":"PLAY BUILD"}</button></div>
           </div>
           <div className="hero-art">
             <div className="art-grid"/><div className="orbit orbit-a"/><div className="orbit orbit-b"/><div className="portrait-mark">A<span>.</span></div>
