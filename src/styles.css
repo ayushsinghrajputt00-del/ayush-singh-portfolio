@@ -43,3 +43,17 @@ html.rebuild-running #root>*:not(.rebuild-overlay){visibility:hidden!important}
 .rebuild-cursor i{left:8px;top:8px;width:24px;height:1px;background:linear-gradient(90deg,#d7b77f,transparent);transform:rotate(45deg)}
 .rebuild-hud{font-size:7px;opacity:.65;letter-spacing:1.5px}
 @media(max-width:760px){.education-grid{grid-template-columns:1fr}.education-card{min-height:180px}.education-card h3{margin-top:20px}}
+
+/* Three purposeful build cursors: each one owns and reveals real sections in the preview. */
+.rebuild-cursor{position:fixed;left:0;top:0;width:34px;height:34px;z-index:84;opacity:0;transform:translate3d(50vw,50vh,0);transition:transform .62s cubic-bezier(.18,.82,.22,1),opacity .25s;pointer-events:none;filter:drop-shadow(0 2px 8px #000)}
+.rebuild-cursor span{position:absolute;left:1px;top:1px;width:11px;height:11px;border:1px solid #f1e7d8;border-radius:2px;background:#c45b4d;box-shadow:0 0 16px #c45b4d88}
+.rebuild-cursor i{position:absolute;left:9px;top:10px;width:25px;height:1px;background:linear-gradient(90deg,#d7b77f,transparent);transform:rotate(45deg);transform-origin:left}
+.rebuild-cursor b{position:absolute;left:18px;top:21px;padding:4px 6px;border:1px solid #c9aa7566;background:#090a0b;color:#d7c5a4;font:7px var(--mono);letter-spacing:1px;white-space:nowrap}
+.rebuild-cursor.cursor-2 span{background:#8ba99b;box-shadow:0 0 16px #8ba99b88}
+.rebuild-cursor.cursor-2 b{color:#a9c7b8;border-color:#8ba99b66}
+.rebuild-cursor.cursor-3 span{background:#c9aa75;box-shadow:0 0 16px #c9aa7588}
+.rebuild-cursor.cursor-working span{animation:cursor-tap .42s ease-in-out infinite alternate}
+@keyframes cursor-tap{from{transform:scale(1)}to{transform:scale(.55);box-shadow:0 0 24px currentColor}}
+#rebuild-copy .rebuild-item.cursor-touched{outline:1px solid rgba(201,170,117,.14);outline-offset:4px}
+.rebuild-hud{font-size:7px;opacity:.8;letter-spacing:1.4px}
+@media(max-width:600px){.rebuild-cursor b{font-size:6px;padding:3px 4px}.rebuild-cursor i{width:18px}}
