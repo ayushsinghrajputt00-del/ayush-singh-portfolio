@@ -21,7 +21,7 @@ function Reveal({ children, delay = 0 }) {
 
 function Swarm({ onDone }) {
   const stageRef = React.useRef(null);
-  const cursorRefs = [React.useRef(null), React.useRef(null), React.useRef(null)];
+  const cursorRefs = Array.from({length:15},()=>React.createRef());
   useEffect(() => {
     const stage = stageRef.current;
     const source = document.getElementById("root");
@@ -40,48 +40,55 @@ function Swarm({ onDone }) {
     const cursors = cursorRefs.map(ref => ref.current);
     const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
     let cancelled = false;
-    const roles = [
-      {name:"LAYOUT", owns:["header","hero-art","hero-bottom","metric-card","section-label"]},
-      {name:"CONTENT", owns:["hero-copy","about-grid","education-card","timeline-row","contact-foot"]},
-      {name:"DETAIL", owns:["hero-topline","focus-row","project-card","footer"]}
+    const teams = [
+      {name:"LAYOUT",start:0,targets:["header","hero-art","hero-bottom","metric-card","section-label"]},
+      {name:"CONTENT",start:5,targets:["hero-copy","about-grid","education-card","timeline-row","contact-foot"]},
+      {name:"DETAIL",start:10,targets:["hero-topline","focus-row","project-card","footer"]}
     ];
-    const owner = el => {
-      const cls = el.className?.toString() || "";
-      const role = roles.findIndex(r => r.owns.some(name => cls.includes(name)));
-      return role < 0 ? 0 : role;
+    const teamFor = el => {
+      const cls=el.className?.toString()||"";
+      const i=teams.findIndex(t=>t.targets.some(name=>cls.includes(name)));
+      return i<0?0:i;
     };
-    const moveCursor = (cursor, el, index) => {
-      if (!cursor || !el) return;
-      const r = el.getBoundingClientRect();
-      const x = Math.max(18,Math.min(innerWidth-35,r.left+r.width*(.18+(index%3)*.25)));
-      const y = Math.max(24,Math.min(innerHeight-35,r.top+Math.min(r.height*.48,48)));
-      cursor.style.transform = `translate3d(${x}px,${y}px,0)`;
-      cursor.style.opacity = "1";
+    const moveTeam = (teamIndex, el, itemIndex) => {
+      const team=teams[teamIndex];
+      const r=el.getBoundingClientRect();
+      const count=5;
+      for(let j=0;j<count;j++){
+        const cursor=cursors[team.start+j];
+        if(!cursor) continue;
+        const col=j%3, row=Math.floor(j/3);
+        const x=Math.max(14,Math.min(innerWidth-45,r.left+r.width*(.12+col*.32)+(row?12:-8)));
+        const y=Math.max(22,Math.min(innerHeight-38,r.top+Math.min(r.height*.28,26)+row*17));
+        cursor.style.transform=`translate3d(${x}px,${y}px,0)`;
+        cursor.style.opacity="1";
+        const label=cursor.querySelector("b");
+        if(label) label.textContent=team.name;
+      }
+    };
+    const setTeamWorking = (teamIndex,active) => {
+      const team=teams[teamIndex];
+      for(let j=0;j<5;j++) cursors[team.start+j]?.classList.toggle("cursor-working",active);
     };
     const build = async () => {
       await wait(300);
-      for (let i=0;i<items.length;i++) {
-        if (cancelled) return;
+      for(let i=0;i<items.length;i++){
+        if(cancelled) return;
         const el=items[i];
-        const top=el.offsetTop;
-        stage.scrollTo({top:Math.max(0,top-Math.min(110,innerHeight*.14)),behavior:"smooth"});
+        const target=Math.max(0,el.offsetTop-Math.min(110,innerHeight*.14));
+        stage.scrollTo({top:target,behavior:"smooth"});
         await wait(300);
-        const roleIndex=owner(el);
-        const cursor=cursors[roleIndex];
-        const badge=cursor?.querySelector("b");
-        if(badge) badge.textContent=roles[roleIndex].name;
-        moveCursor(cursor,el,i);
-        await wait(280);
-        cursor?.classList.add("cursor-working");
-        el.classList.add("is-building");
-        el.classList.add("cursor-touched");
-        await wait(260);
+        const teamIndex=teamFor(el);
+        moveTeam(teamIndex,el,i);
+        setTeamWorking(teamIndex,true);
+        el.classList.add("is-building","cursor-touched");
+        await wait(430);
         el.classList.add("is-built");
         el.classList.remove("is-building");
-        cursor?.classList.remove("cursor-working");
-        if (i%4===3) await wait(180);
+        setTeamWorking(teamIndex,false);
+        if(i%4===3) await wait(180);
       }
-      if (cancelled) return;
+      if(cancelled) return;
       stage.scrollTo({top:0,behavior:"smooth"});
       await wait(700);
       stage.classList.add("rebuild-finish");
@@ -101,8 +108,8 @@ function Swarm({ onDone }) {
   },[onDone]);
   return <div className="rebuild-overlay" aria-hidden="true">
     <div className="rebuild-stage" ref={stageRef}/>
-    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1}`} ref={ref} key={i}><span/><i/><b>{["LAYOUT","CONTENT","DETAIL"][i]}</b></div>)}
-    <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>3 SPECIALISTS · WORKING IN PARALLEL</span></div>
+    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1} cursor-team-${Math.floor(i/5)+1}`} ref={ref} key={i}><span/><i/><b>{["LAYOUT","CONTENT","DETAIL"][Math.floor(i/5)]}</b></div>)}
+    <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>15 CURSORS · 3 WORK GROUPS</span></div>
   </div>;
 }
 
