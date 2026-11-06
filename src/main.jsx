@@ -97,7 +97,7 @@ function App() {
   return <>
     <div className="progress"/>
     <header className="header">
-      <a className="brand" href="#top">AS<span>_</span><small>PERSONAL SYSTEMS / 2026</small></a>
+      <a className="brand" href="#top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu">☰</button>
       <nav className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<button className="motion-button" onClick={()=>setSwarm(true)} disabled={swarm}><i/> {swarm?"Building…":"Motion / ON"}</button><a className="nav-cta" href="#contact">Initiate contact ↗</a></nav>
     </header>
@@ -106,9 +106,9 @@ function App() {
         <div className="hero-topline"><span><i/> INDEPENDENT MIND / ACTIVE LEARNING</span><span>NEW DELHI, IN</span><span>28°36' N / 77°12' E</span></div>
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="gold-label">STUDENT · BUILDER · FUTURE OFFICER</p>
+            <p className="gold-label">STUDENT · CREATOR · CURIOUS MIND</p>
             <h1>AYUSH<span className="red-dot">.</span><br/><em>Singh</em></h1>
-            <p className="hero-desc">Building character through discipline. Exploring technology with curiosity. Turning ambition into consistent action.</p>
+            <p className="hero-desc">Exploring technology, creativity and new ideas. Learning by doing, staying curious and building things that feel meaningful.</p>
             <div className="hero-links"><a className="button" href="#about">Explore profile <span>↘</span></a><a className="under-link" href="#work">View selected work ↗</a></div>
           </div>
           <div className="hero-art">
@@ -127,14 +127,14 @@ function App() {
       </section>
       <section className="section shell" id="about">
         <Reveal><div className="section-label"><span>01 / PROFILE</span><span>BACKGROUND & PHILOSOPHY</span></div></Reveal>
-        <div className="about-grid"><Reveal><h2>Character first.<br/><em>Everything else follows.</em></h2></Reveal><Reveal delay={.1}><div className="body-copy"><p>I'm Ayush, a student from Delhi interested in leadership, technology, fitness and continuous self-improvement. I believe confidence means little without competence, and ambition means little without the discipline to act on it.</p><p>My approach is simple: stay curious, take responsibility, learn from mistakes and keep raising the standard.</p><div className="profile-tags"><span>SELF DEVELOPMENT</span><span>TECHNOLOGY</span><span>LEADERSHIP</span><span>FITNESS</span></div></div></Reveal></div>
+        <div className="about-grid"><Reveal><h2>Curious by nature.<br/><em>Always becoming.</em></h2></Reveal><Reveal delay={.1}><div className="body-copy"><p>I'm Ayush, a student from Delhi interested in technology, creativity, fitness and personal growth. I enjoy exploring how things work, learning new skills and turning interesting ideas into something tangible.</p><p>I like keeping an open mind, learning from experience and getting a little better with every project.</p><div className="profile-tags"><span>SELF DEVELOPMENT</span><span>TECHNOLOGY</span><span>LEADERSHIP</span><span>FITNESS</span></div></div></Reveal></div>
       </section>
       <section className="section shell" id="focus">
-        <Reveal><div className="section-label"><span>02 / CORE DIRECTIVES</span><span>AREAS OF FOCUS</span></div><h2 className="section-heading">Three priorities.<br/><em>One direction.</em></h2></Reveal>
+        <Reveal><div className="section-label"><span>02 / AREAS OF INTEREST</span><span>AREAS OF FOCUS</span></div><h2 className="section-heading">A few interests.<br/><em>Room to explore.</em></h2></Reveal>
         <div className="focus-list">{focus.map(([n,t,d],i)=><Reveal key={n} delay={i*.07}><article className="focus-row"><span className="number">{n}</span><h3>{t}</h3><p>{d}</p><b>↗</b></article></Reveal>)}</div>
       </section>
       <section className="section shell" id="journey">
-        <Reveal><div className="section-label"><span>03 / DEVELOPMENT LOG</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Progress is a practice.<br/><em>Not a finish line.</em></h2></Reveal>
+        <Reveal><div className="section-label"><span>03 / PERSONAL JOURNEY</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Progress is a practice.<br/><em>Not a finish line.</em></h2></Reveal>
         <div className="timeline">{journey.map(([t,s,d],i)=><Reveal key={t} delay={i*.1}><article className="timeline-row"><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>↗</b></article></Reveal>)}</div>
       </section>
       <section className="section shell" id="work">
