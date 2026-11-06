@@ -24,30 +24,80 @@ function Swarm({ onDone }) {
   useEffect(() => {
     const canvas = document.querySelector(".swarm-canvas");
     const ctx = canvas.getContext("2d");
-    let raf, frame = 0;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    const w = innerWidth, h = innerHeight, cx = w / 2, cy = h / 2;
-    canvas.width = w * dpr; canvas.height = h * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const particles = Array.from({ length: Math.min(520, Math.floor(w*h/2400)) }, () => {
-      const a = Math.random() * Math.PI * 2, r = Math.max(w,h) * (.25 + Math.random()*.7);
-      return { a, r, x: cx + Math.cos(a)*r, y: cy + Math.sin(a)*r, size: .5 + Math.random()*1.5, speed: .009 + Math.random()*.024, phase: Math.random()*6.28 };
-    });
-    const draw = () => {
-      frame++; ctx.clearRect(0,0,w,h);
-      const gather = Math.min(frame/110,1);
-      const fade = frame > 185 ? Math.max(0,1-(frame-185)/65) : Math.min(frame/18,1);
-      particles.forEach(p => {
-        const a = p.a + frame*p.speed, r = p.r*(1-gather*.82) + Math.sin(frame*.035+p.phase)*10;
-        const tx = cx + Math.cos(a)*r, ty = cy + Math.sin(a)*r;
-        p.x += (tx-p.x)*.045; p.y += (ty-p.y)*.045;
-        ctx.beginPath(); ctx.fillStyle = `rgba(215,185,132,${fade*(.35+.65*Math.sin(p.phase+frame*.025)**2)})`;
-        ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
-      });
-      if (frame < 250) raf = requestAnimationFrame(draw); else onDone();
+    let raf, frame = 0, alive = true;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w = window.innerWidth, h = window.innerHeight;
+    const resize = () => {
+      w = window.innerWidth; h = window.innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      canvas.style.width = w + "px"; canvas.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    resize();
+    window.addEventListener("resize", resize);
+    const gold = "rgba(211,181,126,";
+    const origin = { x: w * .5, y: h * .48 };
+    const selectors = ["header .brand", ".hero h1", ".hero-desc", ".hero-art", ".quote-band", "#about h2", "#focus .section-heading", ".focus-row", "#journey .section-heading", ".timeline-row", "#work .section-heading", ".empty-work", "#contact h2", ".contact-details"];
+    const targets = selectors.flatMap(sel => [...document.querySelectorAll(sel)].slice(0, 8)).map((el, i) => {
+      const r = el.getBoundingClientRect();
+      return { x: Math.max(12, Math.min(w-12, r.left+r.width/2)), y: Math.max(12, Math.min(h-12, r.top+r.height/2)), width: Math.min(w-24,Math.max(30,r.width)), height: Math.min(h-24,Math.max(18,r.height)), label: el.tagName === "H1" ? "HEADING" : el.id ? el.id.toUpperCase() : ["LAYOUT","TYPE","DETAIL","FORM"][i%4] };
+    });
+    const count = 22;
+    const agents = Array.from({length:count},(_,i)=>({angle:i/count*Math.PI*2, radius:35+Math.random()*30, x:origin.x, y:origin.y, hue:i%4, trail:[]}));
+    const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+    const cursor = (x,y,hue,scale=1) => {
+      ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+      ctx.fillStyle = ["#f2eee7","#d7b77f","#b8c4d0","#e6d9c4"][hue];
+      ctx.strokeStyle = "rgba(8,8,8,.8)"; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,18); ctx.lineTo(5,13); ctx.lineTo(9,22); ctx.lineTo(13,20); ctx.lineTo(9,11); ctx.lineTo(17,10); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    };
+    const draw = () => {
+      if(!alive) return;
+      frame++;
+      ctx.fillStyle = "rgba(5,5,5,.16)";
+      ctx.fillRect(0,0,w,h);
+      const t = frame/480;
+      const intro = Math.min(frame/90,1);
+      const fan = ease(Math.max(0,Math.min(1,(frame-100)/120)));
+      const build = Math.max(0,Math.min(1,(frame-180)/250));
+      const fade = frame>420 ? Math.max(0,1-(frame-420)/60) : 1;
+      agents.forEach((p,i)=>{
+        const orbitA = p.angle + frame*(.025 + i*.00025);
+        const ox = origin.x + Math.cos(orbitA)*(p.radius*(1-intro*.35));
+        const oy = origin.y + Math.sin(orbitA)*(p.radius*(1-intro*.35));
+        const target = targets[(i*3)%Math.max(1,targets.length)] || {x:w*(.15+(i%5)*.17),y:h*(.25+Math.floor(i/5)*.2)};
+        const spreadX = target.x + Math.cos(p.angle*2)*Math.min(80,w*.08);
+        const spreadY = target.y + Math.sin(p.angle*2)*Math.min(50,h*.06);
+        const tx = ox+(spreadX-ox)*fan;
+        const ty = oy+(spreadY-oy)*fan;
+        p.x += (tx-p.x)*.075; p.y += (ty-p.y)*.075;
+        p.trail.push({x:p.x,y:p.y}); if(p.trail.length>14)p.trail.shift();
+        ctx.beginPath(); p.trail.forEach((pt,j)=>j?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));
+        ctx.strokeStyle = gold+(fade*(.04+jitter(i))+.0)+")";
+        ctx.lineWidth=1; ctx.stroke();
+        cursor(p.x,p.y,p.hue,.72);
+      });
+      if(frame>150 && targets.length){
+        targets.forEach((r,i)=>{
+          const progress=Math.max(0,Math.min(1,(frame-160-i*7)/95));
+          if(progress<=0)return;
+          const a=progress*4;
+          ctx.save(); ctx.globalAlpha=fade*.72;
+          ctx.strokeStyle="rgba(211,181,126,.68)";ctx.lineWidth=1;
+          ctx.setLineDash([5,5]);ctx.strokeRect(r.x-r.width/2,r.y-r.height/2,r.width,r.height);ctx.setLineDash([]);
+          const cw=r.width*progress;
+          ctx.strokeStyle="rgba(242,238,231,.9)";ctx.beginPath();ctx.moveTo(r.x-r.width/2,r.y-r.height/2);ctx.lineTo(r.x-r.width/2+cw,r.y-r.height/2);ctx.stroke();
+          ctx.font="9px monospace";ctx.fillStyle="rgba(211,181,126,.95)";ctx.fillText(r.label,r.x-r.width/2,r.y-r.height/2-7);
+          ctx.restore();
+        });
+      }
+      if(frame<480) raf=requestAnimationFrame(draw); else onDone();
+    };
+    const jitter = i => .16 + .12*Math.sin(frame*.08+i);
+    ctx.fillStyle="rgba(5,5,5,.92)";ctx.fillRect(0,0,w,h);
+    raf=requestAnimationFrame(draw);
+    return ()=>{alive=false;cancelAnimationFrame(raf);window.removeEventListener("resize",resize);};
   }, [onDone]);
   return <canvas className="swarm-canvas" aria-hidden="true" />;
 }
@@ -65,7 +115,7 @@ function App() {
     addEventListener("scroll", scroll, { passive: true });
     return () => removeEventListener("scroll", scroll);
   }, []);
-  const toggleMotion = () => { setMotionOn(v => !v); setSwarm(true); };
+  const toggleMotion = () => { if (swarm) return; setMotionOn(true); setSwarm(true); };
   const links = [["About","#about"],["Focus","#focus"],["Journey","#journey"],["Work","#work"]];
   return <>
     <div className="progress" />
@@ -74,7 +124,7 @@ function App() {
       <button className="menu-button" onClick={() => setMenu(!menu)} aria-label="Toggle menu">☰</button>
       <nav className={menu ? "nav open" : "nav"}>
         {links.map(([t,h]) => <a key={h} href={h} onClick={() => setMenu(false)}>{t}</a>)}
-        <button className="motion-button" onClick={toggleMotion}><i className={motionOn ? "dot live" : "dot"} />Motion</button>
+        <button className="motion-button" onClick={toggleMotion} disabled={swarm}><i className={motionOn ? "dot live" : "dot"} />{swarm ? "Building…" : "Motion"}</button>
         <a className="nav-cta" href="#contact">Let's connect ↗</a>
       </nav>
     </header>
