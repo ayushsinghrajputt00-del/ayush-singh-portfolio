@@ -41,7 +41,8 @@ function SwarmExperience() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     let width = 0, height = 0, raf = 0, last = 0;
-    const touchMode = window.matchMedia("(pointer: coarse)").matches;\n    const pointer = { x: window.innerWidth * .5, y: window.innerHeight * .42, active: touchMode };
+    const touchMode = window.matchMedia("(pointer: coarse)").matches;
+    const pointer = { x: window.innerWidth * .5, y: window.innerHeight * .42, active: touchMode };
     const agents = Array.from({ length: 8 }, (_, i) => ({ x: pointer.x, y: pointer.y, angle: 0, hue: i }));
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -50,7 +51,8 @@ function SwarmExperience() {
       canvas.style.width = width + "px"; canvas.style.height = height + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    const move = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; };\n    const touchMove = e => { const t = e.touches && e.touches[0]; if (t) move(t); };
+    const move = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; };
+    const touchMove = e => { const t = e.touches && e.touches[0]; if (t) move(t); };
     const leave = () => { pointer.active = false; };
     const drawCursor = (x, y, index, alpha) => {
       const size = index === 0 ? 12 : 7;
