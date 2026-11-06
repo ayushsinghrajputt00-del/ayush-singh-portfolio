@@ -21,7 +21,7 @@ function Reveal({ children, delay = 0 }) {
 
 function Swarm({ onDone }) {
   const stageRef = React.useRef(null);
-  const cursorRefs = [React.useRef(null), React.useRef(null), React.useRef(null)];
+  const cursorRef = React.useRef(null);
   useEffect(() => {
     const stage = stageRef.current;
     const source = document.getElementById("root");
@@ -37,7 +37,7 @@ function Swarm({ onDone }) {
     const selector = ".header,.hero-topline,.hero-copy,.hero-art,.hero-bottom,.metric-card,.section-label,.about-grid,.focus-row,.timeline-row,.project-card,.contact-foot,.footer";
     const items = [...clone.querySelectorAll(selector)];
     items.forEach(el => { el.classList.add("rebuild-item"); });
-    const cursors = cursorRefs.map(ref => ref.current);
+    const cursor = cursorRef.current;
     const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
     let cancelled = false;
     const moveCursor = (cursor, el, index) => {
@@ -57,7 +57,7 @@ function Swarm({ onDone }) {
         const target=Math.max(0,top- Math.min(110,innerHeight*.14));
         stage.scrollTo({top:target,behavior:"smooth"});
         await wait(240);
-        moveCursor(cursors[i%3],el,i);
+        moveCursor(cursor,el,i);
         el.classList.add("is-building");
         await wait(95);
         el.classList.add("is-built");
@@ -68,7 +68,7 @@ function Swarm({ onDone }) {
       stage.scrollTo({top:0,behavior:"smooth"});
       await wait(650);
       stage.classList.add("rebuild-finish");
-      cursors.forEach(c=>{if(c)c.style.opacity="0"});
+      if(cursor) cursor.style.opacity="0";
       await wait(550);
       document.documentElement.classList.remove("rebuild-running");
       window.scrollTo(0,originalScroll);
@@ -84,7 +84,7 @@ function Swarm({ onDone }) {
   },[onDone]);
   return <div className="rebuild-overlay" aria-hidden="true">
     <div className="rebuild-stage" ref={stageRef}/>
-    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1}`} ref={ref} key={i}><span/><i/></div>)}
+    <div className="rebuild-cursor" ref={cursorRef}><span/><i/></div>
     <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>DESIGN SYSTEM · 2026</span></div>
   </div>;
 }
@@ -93,7 +93,7 @@ function App() {
   const [menu,setMenu]=useState(false),[swarm,setSwarm]=useState(true);
   const finish=React.useCallback(()=>setSwarm(false),[]);
   useEffect(()=>{const scroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty("--progress",max>0?scrollY/max*100+"%":"0%")};addEventListener("scroll",scroll,{passive:true});scroll();return()=>removeEventListener("scroll",scroll)},[]);
-  const links=[["01","Profile","#about"],["02","Focus","#focus"],["03","Journey","#journey"],["04","Work","#work"]];
+  const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Work","#work"]];
   return <>
     <div className="progress"/>
     <header className="header">
@@ -129,16 +129,24 @@ function App() {
         <Reveal><div className="section-label"><span>01 / PROFILE</span><span>BACKGROUND & PHILOSOPHY</span></div></Reveal>
         <div className="about-grid"><Reveal><h2>Curious by nature.<br/><em>Always becoming.</em></h2></Reveal><Reveal delay={.1}><div className="body-copy"><p>I'm Ayush, a student from Delhi interested in technology, creativity, fitness and personal growth. I enjoy exploring how things work, learning new skills and turning interesting ideas into something tangible.</p><p>I like keeping an open mind, learning from experience and getting a little better with every project.</p><div className="profile-tags"><span>SELF DEVELOPMENT</span><span>TECHNOLOGY</span><span>LEADERSHIP</span><span>FITNESS</span></div></div></Reveal></div>
       </section>
+      <section className="section shell" id="education">
+        <Reveal><div className="section-label"><span>02 / EDUCATION</span><span>ACADEMIC BACKGROUND</span></div><h2 className="section-heading">Learning, built<br/><em>step by step.</em></h2></Reveal>
+        <div className="education-grid">
+          <Reveal><article className="education-card"><span>01 / SECONDARY</span><h3>Class X</h3><p>CBSE · Secondary education</p><small>Central Board of Secondary Education</small></article></Reveal>
+          <Reveal delay={.08}><article className="education-card"><span>02 / SENIOR SECONDARY · 2026</span><h3>Class XII</h3><p>CBSE · Humanities</p><small>Rajkiya Pratibha Vikas Vidyalaya, Lajpat Rai Khand, Delhi</small><div className="education-subjects"><b>SUBJECTS</b><i>English · Hindi · History · Political Science · Economics · Physical Education</i></div></article></Reveal>
+          <Reveal delay={.16}><article className="education-card"><span>03 / UNDERGRADUATE</span><h3>Bachelor of Computer Applications</h3><p>Indira Gandhi National Open University (IGNOU)</p><small>Undergraduate programme · Enrolled</small></article></Reveal>
+        </div>
+      </section>
       <section className="section shell" id="focus">
-        <Reveal><div className="section-label"><span>02 / AREAS OF INTEREST</span><span>AREAS OF FOCUS</span></div><h2 className="section-heading">A few interests.<br/><em>Room to explore.</em></h2></Reveal>
+        <Reveal><div className="section-label"><span>03 / AREAS OF INTEREST</span><span>AREAS OF FOCUS</span></div><h2 className="section-heading">A few interests.<br/><em>Room to explore.</em></h2></Reveal>
         <div className="focus-list">{focus.map(([n,t,d],i)=><Reveal key={n} delay={i*.07}><article className="focus-row"><span className="number">{n}</span><h3>{t}</h3><p>{d}</p><b>↗</b></article></Reveal>)}</div>
       </section>
       <section className="section shell" id="journey">
-        <Reveal><div className="section-label"><span>03 / PERSONAL JOURNEY</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Progress is a practice.<br/><em>Not a finish line.</em></h2></Reveal>
+        <Reveal><div className="section-label"><span>04 / PERSONAL JOURNEY</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Progress is a practice.<br/><em>Not a finish line.</em></h2></Reveal>
         <div className="timeline">{journey.map(([t,s,d],i)=><Reveal key={t} delay={i*.1}><article className="timeline-row"><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>↗</b></article></Reveal>)}</div>
       </section>
       <section className="section shell" id="work">
-        <Reveal><div className="section-label"><span>04 / SELECTED WORK</span><span>PROJECT ARCHIVE</span></div><div className="work-title"><h2 className="section-heading">Proof of <em>practice.</em></h2><span>01—03 / INDEX</span></div></Reveal>
+        <Reveal><div className="section-label"><span>05 / SELECTED WORK</span><span>PROJECT ARCHIVE</span></div><div className="work-title"><h2 className="section-heading">Proof of <em>practice.</em></h2><span>01—03 / INDEX</span></div></Reveal>
         <div className="project-grid">
           <Reveal><article className="project-card"><div className="project-visual visual-one"><span>AS / 001</span><b>01</b><i>WEB</i></div><div className="project-meta"><small>PERSONAL PLATFORM / 2026</small><h3>Personal Portfolio</h3><p>A digital home for my story, interests, experiments and future work.</p><span>REACT · VITE · DESIGN</span></div></article></Reveal>
           <Reveal delay={.08}><article className="project-card"><div className="project-visual visual-two"><span>AS / 002</span><b>02</b><i>FITNESS</i></div><div className="project-meta"><small>PERSONAL PRACTICE / 2026</small><h3>Fitness</h3><p>Building strength, endurance and healthy habits through consistent training.</p><span>STRENGTH · ENDURANCE · WELLBEING</span></div></article></Reveal>
