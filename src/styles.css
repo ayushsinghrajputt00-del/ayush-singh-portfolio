@@ -20,4 +20,4 @@
 
 /* Public-facing swarm cursor layer: visual-only, lightweight and non-interactive */
 .swarm-canvas{position:fixed;inset:0;z-index:12;pointer-events:none;display:block}
-@media(max-width:680px),(pointer:coarse){.swarm-canvas{display:none}}
+@media(max-width:680px),(pointer:coarse){.swarm-canvas{display:block;opacity:.9}}
