@@ -89,14 +89,18 @@ function SwarmExperience() {
     };
     resize();
     window.addEventListener("resize",resize);
-    window.addEventListener("pointermove",move,{passive:true});\n    window.addEventListener("touchstart",touchMove,{passive:true});\n    window.addEventListener("touchmove",touchMove,{passive:true});
+    window.addEventListener("pointermove",move,{passive:true});
+    window.addEventListener("touchstart",touchMove,{passive:true});
+    window.addEventListener("touchmove",touchMove,{passive:true});
     window.addEventListener("blur",leave);
     document.addEventListener("mouseleave",leave);
     raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize",resize);
-      window.removeEventListener("pointermove",move);\n      window.removeEventListener("touchstart",touchMove);\n      window.removeEventListener("touchmove",touchMove);
+      window.removeEventListener("pointermove",move);
+      window.removeEventListener("touchstart",touchMove);
+      window.removeEventListener("touchmove",touchMove);
       window.removeEventListener("blur",leave);
       document.removeEventListener("mouseleave",leave);
     };
