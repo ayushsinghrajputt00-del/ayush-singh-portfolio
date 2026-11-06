@@ -57,3 +57,17 @@ html.rebuild-running #root>*:not(.rebuild-overlay){visibility:hidden!important}
 #rebuild-copy .rebuild-item.cursor-touched{outline:1px solid rgba(201,170,117,.14);outline-offset:4px}
 .rebuild-hud{font-size:7px;opacity:.8;letter-spacing:1.4px}
 @media(max-width:600px){.rebuild-cursor b{font-size:6px;padding:3px 4px}.rebuild-cursor i{width:18px}}
+
+/* Dense coordinated cursor teams: five agents per workstream, fifteen total. */
+.rebuild-cursor{width:30px;height:30px;transition:transform .58s cubic-bezier(.18,.82,.22,1),opacity .22s}
+.rebuild-cursor span{width:8px;height:8px;border-radius:2px}
+.rebuild-cursor i{left:7px;top:8px;width:17px}
+.rebuild-cursor b{left:12px;top:15px;padding:3px 4px;font-size:6px;letter-spacing:.7px}
+.rebuild-cursor:nth-of-type(2n) span{border-radius:50%}
+.rebuild-cursor:nth-of-type(3n) i{transform:rotate(25deg)}
+.rebuild-cursor:nth-of-type(4n) i{transform:rotate(65deg)}
+.rebuild-cursor.cursor-team-2 span{background:#8ba99b;box-shadow:0 0 13px #8ba99b88}
+.rebuild-cursor.cursor-team-2 b{color:#a9c7b8;border-color:#8ba99b66}
+.rebuild-cursor.cursor-team-3 span{background:#c9aa75;box-shadow:0 0 13px #c9aa7588}
+.rebuild-cursor.cursor-team-3 b{color:#d7c5a4;border-color:#c9aa7566}
+@media(max-width:600px){.rebuild-cursor b{font-size:5px;padding:2px 3px}.rebuild-cursor i{width:13px}}
