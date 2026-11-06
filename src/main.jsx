@@ -26,7 +26,7 @@ function App() {
   const [menu,setMenu]=useState(false),[motionOn,setMotionOn]=useState(true);
   useEffect(()=>{const scroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty("--progress",max>0?scrollY/max*100+"%":"0%")};addEventListener("scroll",scroll,{passive:true});scroll();return()=>removeEventListener("scroll",scroll)},[]);
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Work","#work"]];
-  return <>
+  return <MotionContext.Provider value={motionOn}><>
     <div className="progress"/>
     <header className="header">
       <a className="brand" href="#top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
