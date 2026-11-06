@@ -24,80 +24,99 @@ function Swarm({ onDone }) {
   useEffect(() => {
     const canvas = document.querySelector(".swarm-canvas");
     const ctx = canvas.getContext("2d");
-    let raf, frame = 0, alive = true;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let w = window.innerWidth, h = window.innerHeight;
+    let raf = 0, frame = 0, alive = true;
+    let w = innerWidth, h = innerHeight;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const gold = "#c9aa75";
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ease = t => 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
     const resize = () => {
-      w = window.innerWidth; h = window.innerHeight;
-      canvas.width = w * dpr; canvas.height = h * dpr;
+      w = innerWidth; h = innerHeight;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
       canvas.style.width = w + "px"; canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
-    window.addEventListener("resize", resize);
-    const gold = "rgba(211,181,126,";
-    const origin = { x: w * .5, y: h * .48 };
-    const selectors = ["header .brand", ".hero h1", ".hero-desc", ".hero-art", ".quote-band", "#about h2", "#focus .section-heading", ".focus-row", "#journey .section-heading", ".timeline-row", "#work .section-heading", ".empty-work", "#contact h2", ".contact-details"];
-    const targets = selectors.flatMap(sel => [...document.querySelectorAll(sel)].slice(0, 8)).map((el, i) => {
+    addEventListener("resize", resize);
+    document.documentElement.classList.add("swarm-running");
+    const selectors = "header, .eyebrow, .hero-copy, .hero-art, .hero-foot, .quote-band, .section-label, h2, .body-copy, .focus-row, .timeline-row, .empty-work, .contact-foot, .footer";
+    const targets = [...document.querySelectorAll(selectors)].map((el, i) => {
       const r = el.getBoundingClientRect();
-      return { x: Math.max(12, Math.min(w-12, r.left+r.width/2)), y: Math.max(12, Math.min(h-12, r.top+r.height/2)), width: Math.min(w-24,Math.max(30,r.width)), height: Math.min(h-24,Math.max(18,r.height)), label: el.tagName === "H1" ? "HEADING" : el.id ? el.id.toUpperCase() : ["LAYOUT","TYPE","DETAIL","FORM"][i%4] };
-    });
-    const count = 22;
-    const agents = Array.from({length:count},(_,i)=>({angle:i/count*Math.PI*2, radius:35+Math.random()*30, x:origin.x, y:origin.y, hue:i%4, trail:[]}));
-    const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
-    const cursor = (x,y,hue,scale=1) => {
+      const visible = r.bottom > 0 && r.top < h && r.right > 0 && r.left < w;
+      if (!visible || r.width < 2 || r.height < 2) return null;
+      const text = (el.innerText || el.getAttribute("aria-label") || "").replace(/\s+/g, " ").trim().slice(0, 54);
+      return { x:r.left, y:r.top, w:r.width, h:r.height, text, type:el.tagName.toLowerCase(), i };
+    }).filter(Boolean);
+    const palette = ["#f1ede6", "#c9aa75", "#9da9b4", "#d8c7a8"];
+    const agents = Array.from({length:Math.max(12,Math.min(28,targets.length*2))},(_,i)=>({
+      x:w*.5, y:h*.52, sx:w*.5, sy:h*.52, target:i%Math.max(1,targets.length),
+      phase:Math.random()*Math.PI*2, hue:i%palette.length, trail:[]
+    }));
+    const cursor = (x,y,color,scale=1) => {
       ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
-      ctx.fillStyle = ["#f2eee7","#d7b77f","#b8c4d0","#e6d9c4"][hue];
-      ctx.strokeStyle = "rgba(8,8,8,.8)"; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,18); ctx.lineTo(5,13); ctx.lineTo(9,22); ctx.lineTo(13,20); ctx.lineTo(9,11); ctx.lineTo(17,10); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=color; ctx.strokeStyle="#080807"; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,17); ctx.lineTo(5,12); ctx.lineTo(9,21); ctx.lineTo(12,19); ctx.lineTo(8,10); ctx.lineTo(16,9); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.restore();
     };
     const draw = () => {
-      if(!alive) return;
+      if (!alive) return;
       frame++;
-      ctx.fillStyle = "rgba(5,5,5,.16)";
-      ctx.fillRect(0,0,w,h);
-      const t = frame/480;
-      const intro = Math.min(frame/90,1);
-      const fan = ease(Math.max(0,Math.min(1,(frame-100)/120)));
-      const build = Math.max(0,Math.min(1,(frame-180)/250));
-      const fade = frame>420 ? Math.max(0,1-(frame-420)/60) : 1;
-      agents.forEach((p,i)=>{
-        const orbitA = p.angle + frame*(.025 + i*.00025);
-        const ox = origin.x + Math.cos(orbitA)*(p.radius*(1-intro*.35));
-        const oy = origin.y + Math.sin(orbitA)*(p.radius*(1-intro*.35));
-        const target = targets[(i*3)%Math.max(1,targets.length)] || {x:w*(.15+(i%5)*.17),y:h*(.25+Math.floor(i/5)*.2)};
-        const spreadX = target.x + Math.cos(p.angle*2)*Math.min(80,w*.08);
-        const spreadY = target.y + Math.sin(p.angle*2)*Math.min(50,h*.06);
-        const tx = ox+(spreadX-ox)*fan;
-        const ty = oy+(spreadY-oy)*fan;
-        p.x += (tx-p.x)*.075; p.y += (ty-p.y)*.075;
-        p.trail.push({x:p.x,y:p.y}); if(p.trail.length>14)p.trail.shift();
-        ctx.beginPath(); p.trail.forEach((pt,j)=>j?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));
-        ctx.strokeStyle = gold+(fade*(.04+jitter(i))+.0)+")";
-        ctx.lineWidth=1; ctx.stroke();
-        cursor(p.x,p.y,p.hue,.72);
+      const t = frame/(reduced?100:300);
+      const reveal = ease((frame-32)/(reduced?35:205));
+      const fade = frame > (reduced?80:320) ? 1-ease((frame-(reduced?80:320))/(reduced?20:55)) : 1;
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle="rgba(5,5,5,.985)"; ctx.fillRect(0,0,w,h);
+      // Fine drafting grid gives the scene a technical, editorial blueprint feel.
+      ctx.save(); ctx.globalAlpha=.12*fade; ctx.strokeStyle=gold; ctx.lineWidth=.5;
+      const step=32;
+      for(let x=(w%step)/2;x<w;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+      for(let y=(h%step)/2;y<h;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+      ctx.restore();
+      // Draw a measured page blueprint, then progressively ink its contents.
+      targets.forEach((r,i)=>{
+        const p=ease((frame-24-i*3)/(reduced?40:115));
+        if(p<=0)return;
+        ctx.save(); ctx.globalAlpha=fade*(.18+.82*p);
+        ctx.strokeStyle=i%3===0?"rgba(201,170,117,.9)":"rgba(232,224,210,.48)";
+        ctx.lineWidth=1; ctx.setLineDash([4,5]); ctx.strokeRect(r.x,r.y,r.w,r.h); ctx.setLineDash([]);
+        const sweep=Math.max(0,Math.min(r.w,(r.w+28)*p-28));
+        ctx.fillStyle="rgba(201,170,117,.12)";ctx.fillRect(r.x,r.y,sweep,r.h);
+        ctx.strokeStyle="rgba(201,170,117,.85)";ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x+sweep,r.y);ctx.stroke();
+        if(r.text && p>.42){
+          ctx.globalAlpha=fade*Math.min(1,(p-.42)*2.2)*.72;
+          ctx.fillStyle=i%3===0?"#d8bd91":"#d8d2c8";
+          ctx.font=(r.type==="h1"||r.type==="h2"?"600 11px":"9px")+" monospace";
+          const words=r.text.slice(0,46);
+          ctx.fillText(words,r.x+7,Math.min(h-8,r.y+Math.min(r.h-5,18)),Math.max(30,r.w-14));
+        }
+        ctx.restore();
       });
-      if(frame>150 && targets.length){
-        targets.forEach((r,i)=>{
-          const progress=Math.max(0,Math.min(1,(frame-160-i*7)/95));
-          if(progress<=0)return;
-          const a=progress*4;
-          ctx.save(); ctx.globalAlpha=fade*.72;
-          ctx.strokeStyle="rgba(211,181,126,.68)";ctx.lineWidth=1;
-          ctx.setLineDash([5,5]);ctx.strokeRect(r.x-r.width/2,r.y-r.height/2,r.width,r.height);ctx.setLineDash([]);
-          const cw=r.width*progress;
-          ctx.strokeStyle="rgba(242,238,231,.9)";ctx.beginPath();ctx.moveTo(r.x-r.width/2,r.y-r.height/2);ctx.lineTo(r.x-r.width/2+cw,r.y-r.height/2);ctx.stroke();
-          ctx.font="9px monospace";ctx.fillStyle="rgba(211,181,126,.95)";ctx.fillText(r.label,r.x-r.width/2,r.y-r.height/2-7);
-          ctx.restore();
-        });
-      }
-      if(frame<480) raf=requestAnimationFrame(draw); else onDone();
+      agents.forEach((a,i)=>{
+        const r=targets[a.target] || {x:w*.5,y:h*.5,w:10,h:10};
+        const angle=t*2.1+a.phase;
+        const tx=r.x+r.w*(.12+.76*((i%7)/6));
+        const ty=r.y+r.h*(.18+.64*((i%5)/4));
+        const orbitX=w*.5+Math.cos(angle)*Math.min(w*.36,110+i%5*15);
+        const orbitY=h*.5+Math.sin(angle*1.17)*Math.min(h*.3,90+i%4*14);
+        const blend=ease((frame-18-i*1.8)/(reduced?40:170));
+        a.sx=orbitX+(tx-orbitX)*blend; a.sy=orbitY+(ty-orbitY)*blend;
+        a.x+=(a.sx-a.x)*.12; a.y+=(a.sy-a.y)*.12;
+        a.trail.push([a.x,a.y]); if(a.trail.length>10)a.trail.shift();
+        ctx.beginPath(); a.trail.forEach((p,j)=>j?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+        ctx.strokeStyle=palette[a.hue]+"55";ctx.lineWidth=1;ctx.stroke();
+        cursor(a.x,a.y,palette[a.hue],.72);
+      });
+      // Corner registration marks and a live build readout.
+      ctx.save();ctx.globalAlpha=fade*.85;ctx.strokeStyle=gold;ctx.fillStyle=gold;ctx.lineWidth=1;
+      [[18,18],[w-18,18],[18,h-18],[w-18,h-18]].forEach(([x,y])=>{ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.moveTo(x,y-6);ctx.lineTo(x,y+6);ctx.stroke();});
+      ctx.font="9px monospace";ctx.fillText("AS / RECONSTRUCTION SEQUENCE",22,h-28);
+      ctx.textAlign="right";ctx.fillText("BUILD "+String(Math.min(100,Math.round(reveal*100))).padStart(3,"0")+"%",w-22,h-28);
+      ctx.restore();
+      if(frame<(reduced?105:380)) raf=requestAnimationFrame(draw);
+      else { document.documentElement.classList.remove("swarm-running"); onDone(); }
     };
-    const jitter = i => .16 + .12*Math.sin(frame*.08+i);
-    ctx.fillStyle="rgba(5,5,5,.92)";ctx.fillRect(0,0,w,h);
     raf=requestAnimationFrame(draw);
-    return ()=>{alive=false;cancelAnimationFrame(raf);window.removeEventListener("resize",resize);};
+    return ()=>{alive=false;cancelAnimationFrame(raf);removeEventListener("resize",resize);document.documentElement.classList.remove("swarm-running");};
   }, [onDone]);
   return <canvas className="swarm-canvas" aria-hidden="true" />;
 }
