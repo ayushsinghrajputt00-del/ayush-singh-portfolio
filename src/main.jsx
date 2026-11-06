@@ -34,7 +34,7 @@ function Swarm({ onDone }) {
     clone.querySelectorAll("a,button").forEach(node => { node.setAttribute("tabindex","-1"); node.style.pointerEvents="none"; });
     stage.appendChild(clone);
     document.documentElement.classList.add("rebuild-running");
-    const selector = ".header,.hero-topline,.hero-copy,.hero-art,.hero-bottom,.metric-card,.section-label,.about-grid,.focus-row,.timeline-row,.project-card,.contact-foot,.footer";
+    const selector = ".header,.hero-topline,.hero-copy,.hero-art,.hero-bottom,.metric-card,.section-label,.about-grid,.education-card,.focus-row,.timeline-row,.project-card,.contact-foot,.footer";
     const items = [...clone.querySelectorAll(selector)];
     items.forEach(el => { el.classList.add("rebuild-item"); });
     const cursor = cursorRef.current;
