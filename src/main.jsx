@@ -4,13 +4,14 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import "./styles.css";
 
 const focus = [
-  ["01", "Service & leadership", "Learning responsibility, teamwork and composure through the NCC experience."],
+  ["01", "Personal growth", "Learning to take responsibility, work with people and keep improving."],
   ["02", "Technology", "Exploring web development, digital tools and the craft of building useful things."],
   ["03", "Personal discipline", "Building consistency through study, physical training and everyday habits."]
 ];
-const education = [
-  ["Bachelor of Computer Applications", "Indira Gandhi National Open University", "Undergraduate programme"],
-  ["National Cadet Corps", "NCC", "B Certificate cadet"]
+const journey = [
+  ["Curiosity", "Ask better questions", "Stay open to ideas, people and new perspectives."],
+  ["Consistency", "Show up every day", "Turn small efforts into skills through deliberate practice."],
+  ["Creating", "Make ideas tangible", "Build, experiment, learn from feedback and improve."]
 ];
 const projects = [];
 
@@ -83,7 +84,7 @@ function App() {
         <div className="eyebrow"><span /> PERSONAL PORTFOLIO <b>EST. 2008 · INDIA</b></div>
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="gold-label">STUDENT · NCC CADET · DEFENCE ASPIRANT</p>
+            <p className="gold-label">STUDENT · CREATOR · CURIOUS MIND</p>
             <h1>Built by<br/><em>discipline.</em><br/>Driven by<br/><em>purpose.</em></h1>
             <p className="hero-desc">I'm Ayush — a student who believes character is built through consistency, curiosity and the courage to take responsibility.</p>
             <div className="hero-links"><a className="button" href="#about">Explore my story <span>↘</span></a><a className="under-link" href="#work">Discover work ↗</a></div>
@@ -104,7 +105,7 @@ function App() {
         <Reveal><div className="section-label"><span>01 / ABOUT</span><span>A LITTLE CONTEXT</span></div></Reveal>
         <div className="about-grid">
           <Reveal><h2>Not just a<br/><em>destination.</em><br/>A work in progress.</h2></Reveal>
-          <Reveal delay={.12}><div className="body-copy"><p>My interests sit at the intersection of service, technology and personal growth. Through my journey as an NCC cadet, my studies and my own experiments with fitness and the web, I'm learning to turn ambition into action — one deliberate step at a time.</p><div className="meta"><div><small>BASED IN</small><b>Delhi, India</b></div><div><small>CURRENT ROLE</small><b>Student & NCC Cadet</b></div></div></div></Reveal>
+          <Reveal delay={.12}><div className="body-copy"><p>My interests sit at the intersection of technology, creativity and personal growth. Through my studies and my own experiments with fitness and the web, I'm learning to turn ambition into action — one deliberate step at a time.</p><div className="meta"><div><small>BASED IN</small><b>Delhi, India</b></div><div><small>CURRENT FOCUS</small><b>Learning & building</b></div></div></div></Reveal>
         </div>
       </section>
 
@@ -115,7 +116,7 @@ function App() {
 
       <section className="section shell" id="journey">
         <Reveal><div className="section-label"><span>03 / THE JOURNEY</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Grounded in learning.<br/><em>Aiming higher.</em></h2></Reveal>
-        <div className="timeline">{education.map(([t,s,d],i)=><Reveal key={t} delay={i*.1}><article className="timeline-row"><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>✳</b></article></Reveal>)}</div>
+        <div className="timeline">{journey.map(([t,s,d],i)=><Reveal key={t} delay={i*.1}><article className="timeline-row"><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>✳</b></article></Reveal>)}</div>
       </section>
 
       <section className="section shell" id="work">
@@ -124,10 +125,10 @@ function App() {
       </section>
 
       <section className="contact shell" id="contact">
-        <Reveal><div className="section-label"><span>05 / CONTACT</span><span>OPEN TO GOOD CONVERSATIONS</span></div><p className="gold-label">HAVE SOMETHING IN MIND?</p><h2>Let's make<br/><em>it matter.</em></h2><div className="contact-foot"><p>For now, find me on GitHub. More contact details will be added when they're ready to be public.</p><a className="button" href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noreferrer">Visit GitHub ↗</a></div></Reveal>
+        <Reveal><div className="section-label"><span>05 / CONTACT</span><span>OPEN TO GOOD CONVERSATIONS</span></div><p className="gold-label">HAVE SOMETHING IN MIND?</p><h2>Let's make<br/><em>it matter.</em></h2><div className="contact-foot"><p>I'd love to connect. Find me on Instagram or explore what I'm building on GitHub.</p><div className="contact-links"><a className="button" href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">Instagram @iiuss__ ↗</a><a className="social-link" href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noreferrer">GitHub ↗</a></div></div></Reveal>
       </section>
     </main>
-    <footer className="footer shell"><a className="brand" href="#top">AS<span>.</span></a><span>© {new Date().getFullYear()} AYUSH SINGH</span><a href="#top">BACK TO TOP ↑</a><small>MADE WITH INTENTION.</small></footer>
+    <footer className="footer shell"><a className="brand" href="#top">AS<span>.</span></a><span>© {new Date().getFullYear()} AYUSH SINGH</span><a href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">INSTAGRAM ↗</a><a href="#top">BACK TO TOP ↑</a><small>MADE WITH INTENTION.</small></footer>
     <AnimatePresence>{swarm && <Swarm onDone={finish}/>}</AnimatePresence>
   </>;
 }
