@@ -53,17 +53,22 @@ function Swarm({ onDone }) {
     const moveTeam = (teamIndex, el, itemIndex) => {
       const team=teams[teamIndex];
       const r=el.getBoundingClientRect();
-      const count=5;
-      for(let j=0;j<count;j++){
+      cursors.forEach((cursor,index)=>{
+        if(!cursor) return;
+        const active=index>=team.start && index<team.start+5;
+        cursor.style.opacity=active?"1":"0";
+        cursor.classList.remove("cursor-working");
+      });
+      // Five agents use a tidy staggered line around the element instead of piling onto one point.
+      for(let j=0;j<5;j++){
         const cursor=cursors[team.start+j];
         if(!cursor) continue;
-        const col=j%3, row=Math.floor(j/3);
-        const x=Math.max(14,Math.min(innerWidth-45,r.left+r.width*(.12+col*.32)+(row?12:-8)));
-        const y=Math.max(22,Math.min(innerHeight-38,r.top+Math.min(r.height*.28,26)+row*17));
+        const spread=Math.min(48,Math.max(24,r.width/12));
+        const x=Math.max(18,Math.min(innerWidth-42,r.left+r.width*.5+(j-2)*spread));
+        const y=Math.max(24,Math.min(innerHeight-38,r.top+Math.min(r.height*.22,22)+(j%2)*13));
         cursor.style.transform=`translate3d(${x}px,${y}px,0)`;
-        cursor.style.opacity="1";
         const label=cursor.querySelector("b");
-        if(label) label.textContent=team.name;
+        if(label) label.textContent=j===0?team.name:"";
       }
     };
     const setTeamWorking = (teamIndex,active) => {
@@ -108,7 +113,7 @@ function Swarm({ onDone }) {
   },[onDone]);
   return <div className="rebuild-overlay" aria-hidden="true">
     <div className="rebuild-stage" ref={stageRef}/>
-    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1} cursor-team-${Math.floor(i/5)+1}`} ref={ref} key={i}><span/><i/><b>{["LAYOUT","CONTENT","DETAIL"][Math.floor(i/5)]}</b></div>)}
+    {cursorRefs.map((ref,i)=><div className={`rebuild-cursor cursor-${i+1} cursor-team-${Math.floor(i/5)+1}`} ref={ref} key={i}><span/><i/><b>{i%5===0?["LAYOUT","CONTENT","DETAIL"][Math.floor(i/5)]:""}</b></div>)}
     <div className="rebuild-hud"><span>AS / LIVE INTERFACE ASSEMBLY</span><span>15 CURSORS · 3 WORK GROUPS</span></div>
   </div>;
 }
