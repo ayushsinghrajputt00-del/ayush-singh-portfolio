@@ -133,7 +133,7 @@ function App() {
         <Reveal><div className="section-label"><span>02 / EDUCATION</span><span>ACADEMIC BACKGROUND</span></div><h2 className="section-heading">Learning, built<br/><em>step by step.</em></h2></Reveal>
         <div className="education-grid">
           <Reveal><article className="education-card"><span>01 / SECONDARY</span><h3>Class X</h3><p>CBSE · Secondary education</p><small>Central Board of Secondary Education</small></article></Reveal>
-          <Reveal delay={.08}><article className="education-card"><span>02 / SENIOR SECONDARY · 2026</span><h3>Class XII</h3><p>CBSE · Humanities</p><small>Rajkiya Pratibha Vikas Vidyalaya, Lajpat Rai Khand, Delhi</small><div className="education-subjects"><b>SUBJECTS</b><i>English · Hindi · History · Political Science · Economics · Physical Education</i></div></article></Reveal>
+          <Reveal delay={.08}><article className="education-card"><span>02 / SENIOR SECONDARY · 2026</span><h3>Class XII</h3><p>CBSE · Humanities</p><small>Rajkiya Pratibha Vikas Vidyalaya, Link Road, Karol Bagh, Delhi</small><div className="education-subjects"><b>SUBJECTS</b><i>English · Hindi · History · Political Science · Economics · Physical Education</i></div></article></Reveal>
           <Reveal delay={.16}><article className="education-card"><span>03 / UNDERGRADUATE</span><h3>Bachelor of Computer Applications</h3><p>Indira Gandhi National Open University (IGNOU)</p><small>Undergraduate programme · Enrolled</small></article></Reveal>
         </div>
       </section>
