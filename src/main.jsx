@@ -76,6 +76,11 @@ function SwarmCanvas() {
       pointer.active = true;
     };
     const onPointerLeave = () => { pointer.active = false; };
+    const onPointerOut = (event) => { if (!event.relatedTarget) onPointerLeave(); };
+    const onVisibilityChange = () => {
+      running = !document.hidden;
+      if (running && !frame) frame = requestAnimationFrame(draw);
+    };
     const limit = (x, y, max) => {
       const magnitude = Math.hypot(x, y);
       if (magnitude > max && magnitude > 0) return [x / magnitude * max, y / magnitude * max];
@@ -85,13 +90,8 @@ function SwarmCanvas() {
     resize();
     window.addEventListener("resize", resize, { passive: true });
     window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerout", (event) => {
-      if (!event.relatedTarget) onPointerLeave();
-    }, { passive: true });
-    document.addEventListener("visibilitychange", () => {
-      running = !document.hidden;
-      if (running && !frame) frame = requestAnimationFrame(draw);
-    });
+    window.addEventListener("pointerout", onPointerOut, { passive: true });
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const draw = () => {
       frame = 0;
@@ -197,6 +197,8 @@ function SwarmCanvas() {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerout", onPointerOut);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [motionEnabled, reduce]);
 
