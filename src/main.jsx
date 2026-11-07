@@ -35,174 +35,78 @@ function Reveal({ children, delay = 0 }) {
 function SwarmCanvas() {
   const motionEnabled = useContext(MotionContext);
   const reduce = useReducedMotion();
+
   useEffect(() => {
     if (!motionEnabled || reduce) return;
     const canvas = document.querySelector(".swarm-canvas");
     if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true });
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    let frame = 0;
-    let running = true;
-    const pointer = { x: width / 2, y: height / 2, active: false };
-    const count = width < 700 ? 30 : 48;
-    const boids = Array.from({ length: count }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 1.8,
-      vy: (Math.random() - 0.5) * 1.8
-    }));
-    const maxSpeed = 2.15;
-    const maxForce = 0.045;
-    const neighborRadius = 92;
-    const separationRadius = 27;
+    // Original Python/Pygame dimensions and particle setup.
+    const WIDTH = 800;
+    const HEIGHT = 600;
+    const FPS_INTERVAL = 1000 / 60;
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
 
-    const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = width + "px";
-      canvas.style.height = height + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const boids = Array.from({ length: 50 }, () => ({
+      x: 400,
+      y: 300,
+      vx: Math.random() * 2 - 1,
+      vy: Math.random() * 2 - 1,
+      ax: 0,
+      ay: 0
+    }));
+
+    let frame = 0;
+    let lastFrameTime = 0;
+    let running = true;
+
+    const draw = (timestamp) => {
+      frame = 0;
+      if (!running) return;
+
+      if (timestamp - lastFrameTime >= FPS_INTERVAL) {
+        lastFrameTime = timestamp - ((timestamp - lastFrameTime) % FPS_INTERVAL);
+
+        // Pygame's screen.fill((20, 20, 20)) becomes a clear frame here,
+        // allowing the existing portfolio background to remain visible.
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        for (const boid of boids) {
+          // Same update as the supplied Python class: position += velocity.
+          boid.x += boid.vx;
+          boid.y += boid.vy;
+          boid.ax = 0;
+          boid.ay = 0;
+
+          ctx.beginPath();
+          ctx.fillStyle = "rgb(0, 255, 200)";
+          ctx.arc(boid.x, boid.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      frame = requestAnimationFrame(draw);
     };
-    const onPointerMove = (event) => {
-      pointer.x = event.clientX;
-      pointer.y = event.clientY;
-      pointer.active = true;
-    };
-    const onPointerLeave = () => { pointer.active = false; };
-    const onPointerOut = (event) => { if (!event.relatedTarget) onPointerLeave(); };
+
     const onVisibilityChange = () => {
       running = !document.hidden;
       if (running && !frame) frame = requestAnimationFrame(draw);
     };
-    const limit = (x, y, max) => {
-      const magnitude = Math.hypot(x, y);
-      if (magnitude > max && magnitude > 0) return [x / magnitude * max, y / magnitude * max];
-      return [x, y];
-    };
 
-    resize();
-    window.addEventListener("resize", resize, { passive: true });
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerout", onPointerOut, { passive: true });
     document.addEventListener("visibilitychange", onVisibilityChange);
-
-    const draw = () => {
-      frame = 0;
-      if (!running) return;
-      ctx.clearRect(0, 0, width, height);
-      const next = boids.map((boid, index) => {
-        let sepX = 0, sepY = 0, aliX = 0, aliY = 0, cohX = 0, cohY = 0;
-        let neighbors = 0, close = 0;
-        for (let j = 0; j < boids.length; j++) {
-          if (j === index) continue;
-          const other = boids[j];
-          let dx = other.x - boid.x;
-          let dy = other.y - boid.y;
-          if (dx > width / 2) dx -= width;
-          if (dx < -width / 2) dx += width;
-          if (dy > height / 2) dy -= height;
-          if (dy < -height / 2) dy += height;
-          const distance = Math.hypot(dx, dy);
-          if (distance > 0 && distance < neighborRadius) {
-            aliX += other.vx;
-            aliY += other.vy;
-            cohX += dx;
-            cohY += dy;
-            neighbors++;
-            if (distance < separationRadius) {
-              sepX -= dx / distance;
-              sepY -= dy / distance;
-              close++;
-            }
-          }
-        }
-
-        let forceX = 0, forceY = 0;
-        if (neighbors) {
-          const alignment = limit(aliX / neighbors - boid.vx, aliY / neighbors - boid.vy, maxForce);
-          const cohesion = limit(cohX / neighbors * 0.012 - boid.vx * 0.018, cohY / neighbors * 0.012 - boid.vy * 0.018, maxForce);
-          forceX += alignment[0] * 0.9 + cohesion[0] * 0.85;
-          forceY += alignment[1] * 0.9 + cohesion[1] * 0.85;
-        }
-        if (close) {
-          const separation = limit(sepX / close, sepY / close, maxForce);
-          forceX += separation[0] * 1.7;
-          forceY += separation[1] * 1.7;
-        }
-
-        if (pointer.active) {
-          let dx = pointer.x - boid.x;
-          let dy = pointer.y - boid.y;
-          const distance = Math.hypot(dx, dy);
-          if (distance < 260 && distance > 1) {
-            const strength = (1 - distance / 260) * 0.026;
-            forceX += dx / distance * strength;
-            forceY += dy / distance * strength;
-          }
-        }
-
-        let [ax, ay] = limit(forceX, forceY, maxForce * 2.6);
-        let vx = boid.vx + ax;
-        let vy = boid.vy + ay;
-        [vx, vy] = limit(vx, vy, maxSpeed);
-        const speed = Math.hypot(vx, vy);
-        if (speed < 0.65) {
-          vx += (Math.random() - 0.5) * 0.035;
-          vy += (Math.random() - 0.5) * 0.035;
-        }
-        return { x: (boid.x + vx + width) % width, y: (boid.y + vy + height) % height, vx, vy };
-      });
-      for (let i = 0; i < next.length; i++) {
-        const a = next[i];
-        for (let j = i + 1; j < next.length; j++) {
-          const b = next[j];
-          let dx = a.x - b.x;
-          let dy = a.y - b.y;
-          if (dx > width / 2) dx -= width;
-          if (dx < -width / 2) dx += width;
-          if (dy > height / 2) dy -= height;
-          if (dy < -height / 2) dy += height;
-          const distance = Math.hypot(dx, dy);
-          if (distance < 105) {
-            ctx.strokeStyle = `rgba(92, 211, 190, ${(1 - distance / 105) * 0.12})`;
-            ctx.lineWidth = 0.7;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-      for (const boid of next) {
-        ctx.beginPath();
-        ctx.fillStyle = "rgba(112, 226, 205, 0.72)";
-        ctx.shadowColor = "rgba(80, 220, 195, 0.65)";
-        ctx.shadowBlur = 9;
-        ctx.arc(boid.x, boid.y, 1.65, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.shadowBlur = 0;
-      for (let i = 0; i < boids.length; i++) Object.assign(boids[i], next[i]);
-      frame = requestAnimationFrame(draw);
-    };
     frame = requestAnimationFrame(draw);
+
     return () => {
+      running = false;
       cancelAnimationFrame(frame);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerout", onPointerOut);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [motionEnabled, reduce]);
 
-  return <canvas className="swarm-canvas" aria-hidden="true" />;
+  return <canvas className="swarm-canvas" width="800" height="600" aria-hidden="true" />;
 }
 
 function App() {
