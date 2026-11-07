@@ -94,7 +94,7 @@ function RebuildEffect() {
       if(cancelled)return;
       if(!started)started=now;
       const elapsed=(now-started)/1000;
-      const scanDuration=2.2, buildDuration=13/speed;
+      const scanDuration=0.01, buildDuration=13/speed;
       if(phase==="SCAN"){
         const p=Math.min(1,elapsed/scanDuration);
         window.scrollTo(0,Math.max(0,(document.documentElement.scrollHeight-innerHeight)*p));
@@ -139,7 +139,7 @@ function RebuildEffect() {
         hud.querySelector(".rebuild-phase").textContent=p>=1?"RECONSTRUCTION COMPLETE":"BUILDING LAYERS";
         if(p>=1){phase="SWARM";started=now;hud.querySelector(".rebuild-phase").textContent="SWARM CONVERGENCE";hud.querySelector(".rebuild-count").textContent="760 PARTICLES / 04 GROUPS";}
       } else if(phase==="SWARM"){
-        const p=Math.min(1,elapsed/3.4);
+        const p=Math.min(1,elapsed/4.2);
         ctx.fillStyle="rgba(5,7,9,.24)";ctx.fillRect(0,0,innerWidth,innerHeight);
         agents.forEach((a,i)=>{
           const gx=innerWidth*(.18+i*.215),gy=innerHeight*(.28+(i%2)*.42);
