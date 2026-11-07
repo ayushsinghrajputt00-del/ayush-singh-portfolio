@@ -32,124 +32,119 @@ function Reveal({ children, delay = 0 }) {
 
 
 
-function SwarmCanvas() {
-  const motionEnabled = useContext(MotionContext);
-  const reduce = useReducedMotion();
+function RebuildEffect() {
   useEffect(() => {
-    if (!motionEnabled || reduce) return;
-    const canvas = document.querySelector(".swarm-canvas");
-    const ctx = canvas?.getContext("2d");
-    if (!ctx) return;
-    let w=0,h=0,dpr=1,raf=0,startTime=0,px=-1000,py=-1000;
-    let scrollProgress=0,scrollEnergy=0,lastScroll=window.scrollY;
-    const palette=["#f05b49","#e9b65f","#66c9bd","#b69be8","#e9e2d5"];
-    let particles=[];
-    const makeTargets=()=>{
-      const off=document.createElement("canvas"),c=off.getContext("2d");
-      off.width=Math.max(1,Math.floor(w));off.height=Math.max(1,Math.floor(h));
-      c.fillStyle="#fff";c.textAlign="center";c.textBaseline="middle";
-      const mainSize=Math.min(w*.19,150),subSize=Math.min(w*.075,48);
-      c.font="700 "+mainSize+"px Arial";c.fillText("AYUSH",w/2,h*.44);
-      c.font="500 "+subSize+"px Arial";c.fillText("SINGH",w/2,h*.61);
-      const data=c.getImageData(0,0,off.width,off.height).data,points=[];
-      const step=Math.max(3,Math.round(w/260));
-      for(let y=0;y<h;y+=step)for(let x=0;x<w;x+=step)
-        if(data[(y*off.width+x)*4+3]>100)points.push({x,y});
-      return points;
-    };
-    const resize=()=>{
-      const rect=canvas.getBoundingClientRect();
-      dpr=Math.min(devicePixelRatio||1,2);w=rect.width;h=rect.height;
-      canvas.width=Math.max(1,Math.floor(w*dpr));canvas.height=Math.max(1,Math.floor(h*dpr));
+    const root = document.getElementById("root");
+    if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelled = false, raf = 0, scrollTimer = 0;
+    let speed = 1, phase = "SCAN", started = 0, items = [], agents = [];
+    const oldScroll = window.scrollY;
+    const canvas = document.createElement("canvas");
+    canvas.className = "rebuild-canvas";
+    const ctx = canvas.getContext("2d");
+    const hud = document.createElement("div");
+    hud.className = "rebuild-hud";
+    hud.innerHTML = '<div class="rebuild-head"><span><i></i> SAAI / PAGE RECONSTRUCTION</span><b class="rebuild-phase">SCANNING DOM</b></div><div class="rebuild-progress"><i></i></div><div class="rebuild-meta"><span class="rebuild-count">0 ELEMENTS MAPPED</span><span class="rebuild-percent">00%</span><span>AGENTS / 04</span></div><div class="rebuild-controls"><button data-action="tour">TOUR / AUTO</button><button data-action="speed">SPEED / 1×</button><button data-action="replay">↻ REPLAY</button><button data-action="live">GO LIVE ↗</button><button data-action="close">CLOSE ×</button></div>';
+    document.body.append(canvas, hud);
+    document.body.classList.add("rebuild-running");
+    const resize = () => {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+      canvas.style.width = innerWidth + "px"; canvas.style.height = innerHeight + "px";
       ctx.setTransform(dpr,0,0,dpr,0,0);
-      const targets=makeTargets(),count=Math.min(620,Math.max(260,targets.length));
-      particles=Array.from({length:count},(_,i)=>{
-        const angle=Math.random()*Math.PI*2,dist=Math.max(w,h)*(.35+Math.random()*.8);
-        return {x:w/2+Math.cos(angle)*dist,y:h/2+Math.sin(angle)*dist,
-          vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,
-          target:targets[Math.floor(i*targets.length/count)]||{x:w/2,y:h/2},
-          size:1.1+Math.random()*1.6,phase:Math.random()*Math.PI*2,
-          color:palette[i%palette.length]};
-      });
     };
-    const pointer=e=>{
-      const rect=canvas.getBoundingClientRect();
-      px=e.clientX-rect.left;py=e.clientY-rect.top;
+    const scan = () => {
+      const nodes = [...root.querySelectorAll("header,section,footer,article,h1,h2,h3,p,a,button,img,svg,.metric-card,.project-visual")];
+      items = nodes.map((el,i) => {
+        const r=el.getBoundingClientRect();
+        const x=r.left+scrollX,y=r.top+scrollY;
+        return {x,y,w:r.width,h:r.height,tag:el.tagName.toLowerCase(),text:(el.innerText||el.getAttribute("alt")||"").trim().slice(0,90),i};
+      }).filter(o=>o.w>5&&o.h>5&&o.y<document.documentElement.scrollHeight);
+      agents = Array.from({length:4},(_,i)=>({x:innerWidth*(.15+i*.22),y:innerHeight*.3,phase:i*.22}));
+      hud.querySelector(".rebuild-count").textContent=items.length+" ELEMENTS MAPPED";
     };
-    const scroll=()=>{
-      const max=document.documentElement.scrollHeight-innerHeight;
-      scrollProgress=max>0?window.scrollY/max:0;
-      const delta=window.scrollY-lastScroll;
-      scrollEnergy=Math.min(1,scrollEnergy+Math.min(1,Math.abs(delta)/90));
-      lastScroll=window.scrollY;
+    const finish = () => {
+      phase="LIVE";
+      document.body.classList.remove("rebuild-running");
+      canvas.remove(); hud.remove(); window.scrollTo({top:0,behavior:"instant"});
+      removeEventListener("resize",resize);
     };
-    const draw=now=>{
-      if(!startTime)startTime=now;
-      const elapsed=(now-startTime)/1000,cycle=elapsed%16;
-      const gather=Math.max(0,Math.min(1,(cycle-1.1)/3.8));
-      const disperse=cycle>11.5?Math.min(1,(cycle-11.5)/1.8):0;
-      const scrollWave=Math.sin(scrollProgress*Math.PI*5);
-      const settle=gather*(1-disperse);
-      ctx.clearRect(0,0,w,h);
-      for(const p of particles){
-        const orbit=1-settle;
-        const swirl=elapsed*.65+p.phase+scrollProgress*5;
-        const waveX=Math.sin(scrollProgress* Math.PI*8+p.phase)*scrollProgress*34;
-        const waveY=Math.cos(scrollProgress* Math.PI*6+p.phase)*scrollProgress*24;
-        const tx=p.target.x+Math.cos(swirl)*orbit*95+waveX;
-        const ty=p.target.y+Math.sin(swirl*1.13)*orbit*65+waveY;
-        const dx=tx-p.x,dy=ty-p.y;
-        const spring=settle>.8?.035:.012;
-        p.vx=(p.vx+dx*spring)*.91;
-        p.vy=(p.vy+dy*spring)*.91;
-
-        // Anti-gravity field: particles gently levitate, with stronger lift on pointer proximity.
-        const mx=p.x-px,my=p.y-py,d=Math.hypot(mx,my);
-        const ambientLift=(1-settle*.72)*(.055+Math.sin(elapsed*1.7+p.phase)*.025);
-        p.vy-=ambientLift;
-        p.vx+=Math.sin(elapsed*.8+p.phase)*.018*(1-settle*.5);
-        if(d<190&&d>0){
-          const influence=(1-d/190);
-          const swirlForce=influence*(1.15+scrollEnergy*1.8);
-          const lift=influence*(1.8+scrollEnergy*2.2);
-          p.vx+=(-my/d)*swirlForce + (mx/d)*influence*.2;
-          p.vy+=(mx/d)*swirlForce - lift;
-        }
-        if(disperse>.05){p.vx+=Math.cos(swirl)*disperse*.32;p.vy+=Math.sin(swirl)*disperse*.32}
-        p.x+=p.vx;p.y+=p.vy;
-        // Wrap particles around the canvas so the floating field never runs out.
-        if(p.y < -18){p.y=h+18;p.x=Math.random()*w}
-        if(p.x < -24)p.x=w+24;
-        if(p.x > w+24)p.x=-24;
-        const speed=Math.hypot(p.vx,p.vy);
-        if(speed>5){p.vx=p.vx/speed*5;p.vy=p.vy/speed*5}
-        const s=p.size,alpha=.5+settle*.45;
-        ctx.save();ctx.translate(p.x,p.y);
-        ctx.globalAlpha=alpha;ctx.fillStyle=p.color;ctx.shadowColor=p.color;
-        ctx.shadowBlur=settle>.65?8:3;
-        ctx.beginPath();ctx.arc(0,0,s*(.8+settle*.35+scrollEnergy*.25),0,Math.PI*2);ctx.fill();ctx.restore();
+    const replay = () => {
+      document.body.classList.add("rebuild-running");
+      window.scrollTo({top:0,behavior:"instant"});
+      phase="SCAN"; started=performance.now(); scan();
+    };
+    hud.addEventListener("click",e=>{
+      const action=e.target?.dataset?.action;
+      if(action==="close"||action==="live") finish();
+      if(action==="replay") replay();
+      if(action==="speed"){speed=speed===1?1.7:speed===1.7?2.5:1;hud.querySelector('[data-action="speed"]').textContent="SPEED / "+speed+"×";}
+      if(action==="tour"){const b=hud.querySelector('[data-action="tour"]');b.textContent=b.textContent.includes("AUTO")?"TOUR / PAUSED":"TOUR / AUTO";}
+    });
+    const draw = now => {
+      if(cancelled)return;
+      if(!started)started=now;
+      const elapsed=(now-started)/1000;
+      const scanDuration=2.2, buildDuration=13/speed;
+      if(phase==="SCAN"){
+        const p=Math.min(1,elapsed/scanDuration);
+        window.scrollTo(0,Math.max(0,(document.documentElement.scrollHeight-innerHeight)*p));
+        if(p>=1){scan();phase="BUILD";started=now;window.scrollTo(0,0);}
+      } else if(phase==="BUILD"){
+        const p=Math.min(1,elapsed/buildDuration);
+        const active=Math.floor(items.length*p);
+        const maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+        const targetY=maxScroll*p;
+        const tour=hud.querySelector('[data-action="tour"]').textContent.includes("AUTO");
+        if(tour)window.scrollTo(0,targetY);
+        ctx.clearRect(0,0,innerWidth,innerHeight);
+        ctx.fillStyle="rgba(5,7,9,.97)";ctx.fillRect(0,0,innerWidth,innerHeight);
+        const scroll=window.scrollY;
+        ctx.lineWidth=1;
+        items.forEach((o,i)=>{
+          const x=o.x,y=o.y-scroll;
+          if(y>innerHeight+80||y+o.h< -80)return;
+          const done=i<active, current=i>=active&&i<active+10;
+          ctx.strokeStyle=done?"rgba(201,170,117,.27)":current?"rgba(239,91,73,.95)":"rgba(135,153,164,.2)";
+          ctx.fillStyle=done?"rgba(201,170,117,.035)":"rgba(110,145,165,.025)";
+          ctx.fillRect(x,y,o.w,o.h);ctx.strokeRect(x,y,o.w,o.h);
+          if(o.h>24&&o.w>45){
+            ctx.strokeStyle=done?"rgba(238,234,227,.25)":"rgba(151,169,180,.23)";
+            const lines=Math.min(3,Math.max(1,Math.floor(o.h/18)));
+            for(let n=0;n<lines;n++){const yy=y+Math.min(o.h-5,10+n*13);ctx.beginPath();ctx.moveTo(x+7,yy);ctx.lineTo(x+Math.max(12,o.w*(.42+((i+n)%4)*.12)),yy);ctx.stroke();}
+          }
+        });
+        agents.forEach((a,i)=>{
+          const idx=Math.min(items.length-1,Math.floor(active+(i-1.5)*8));
+          const o=items[Math.max(0,idx)]||{x:innerWidth/2,y:scroll+innerHeight/2,w:80,h:40};
+          const tx=Math.max(8,Math.min(innerWidth-8,o.x+o.w*.5));
+          const ty=o.y-scroll+Math.min(o.h*.5,20);
+          a.x+=(tx-a.x)*.14;a.y+=(ty-a.y)*.14;
+          ctx.save();ctx.translate(a.x,a.y);ctx.strokeStyle=["#f05b49","#e9b65f","#66c9bd","#b69be8"][i];ctx.lineWidth=1.3;
+          ctx.beginPath();ctx.moveTo(-13,0);ctx.lineTo(13,0);ctx.moveTo(0,-13);ctx.lineTo(0,13);ctx.stroke();
+          ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.stroke();
+          ctx.font="9px monospace";ctx.fillStyle=ctx.strokeStyle;ctx.fillText("AGENT_0"+(i+1),9,-10);ctx.restore();
+        });
+        hud.querySelector(".rebuild-progress i").style.width=(p*100)+"%";
+        hud.querySelector(".rebuild-percent").textContent=String(Math.floor(p*100)).padStart(2,"0")+"%";
+        hud.querySelector(".rebuild-phase").textContent=p>=1?"RECONSTRUCTION COMPLETE":"BUILDING LAYERS";
+        if(p>=1){setTimeout(()=>{if(!cancelled)finish()},650);return;}
       }
-      if(px>-500){
-        ctx.save();ctx.globalAlpha=.18+scrollEnergy*.15;ctx.strokeStyle="#e9b65f";ctx.lineWidth=1;
-        ctx.beginPath();ctx.arc(px,py,12+scrollEnergy*18+Math.sin(elapsed*4)*3,0,Math.PI*2);ctx.stroke();ctx.restore();
-      }
-      scrollEnergy*=.94;
       raf=requestAnimationFrame(draw);
     };
-    resize();scroll();
-    addEventListener("resize",resize);addEventListener("pointermove",pointer,{passive:true});
-    addEventListener("scroll",scroll,{passive:true});
+    resize();scan();started=performance.now();
+    addEventListener("resize",resize);
     raf=requestAnimationFrame(draw);
-    return()=>{cancelAnimationFrame(raf);removeEventListener("resize",resize);removeEventListener("pointermove",pointer);removeEventListener("scroll",scroll)};
-  },[motionEnabled,reduce]);
-  return <canvas className="swarm-canvas" aria-hidden="true" />;
+    return()=>{cancelled=true;cancelAnimationFrame(raf);clearTimeout(scrollTimer);removeEventListener("resize",resize);document.body.classList.remove("rebuild-running");canvas.remove();hud.remove();};
+  },[]);
+  return null;
 }
 function App() {
   const [menu,setMenu]=useState(false),[motionOn,setMotionOn]=useState(true);
   useEffect(()=>{const scroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty("--progress",max>0?scrollY/max*100+"%":"0%")};addEventListener("scroll",scroll,{passive:true});scroll();return()=>removeEventListener("scroll",scroll)},[]);
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Tools","#skills"],["06","Work","#work"]];
   return <MotionContext.Provider value={motionOn}><>
-    <SwarmCanvas />
+    <RebuildEffect />
     <div className="progress"/>
     <header className="header">
       <a className="brand" href="#top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
