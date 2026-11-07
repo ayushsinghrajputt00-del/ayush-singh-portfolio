@@ -102,15 +102,25 @@ function SwarmCanvas() {
         const spring=settle>.8?.035:.012;
         p.vx=(p.vx+dx*spring)*.91;
         p.vy=(p.vy+dy*spring)*.91;
+
+        // Anti-gravity field: particles gently levitate, with stronger lift on pointer proximity.
         const mx=p.x-px,my=p.y-py,d=Math.hypot(mx,my);
-        if(d<155&&d>0){
-          const influence=(1-d/155);
-          const swirlForce=influence*(1.25+scrollEnergy*1.8);
-          p.vx+=(-my/d)*swirlForce + (mx/d)*influence*.18;
-          p.vy+=(mx/d)*swirlForce + (my/d)*influence*.18;
+        const ambientLift=(1-settle*.72)*(.055+Math.sin(elapsed*1.7+p.phase)*.025);
+        p.vy-=ambientLift;
+        p.vx+=Math.sin(elapsed*.8+p.phase)*.018*(1-settle*.5);
+        if(d<190&&d>0){
+          const influence=(1-d/190);
+          const swirlForce=influence*(1.15+scrollEnergy*1.8);
+          const lift=influence*(1.8+scrollEnergy*2.2);
+          p.vx+=(-my/d)*swirlForce + (mx/d)*influence*.2;
+          p.vy+=(mx/d)*swirlForce - lift;
         }
         if(disperse>.05){p.vx+=Math.cos(swirl)*disperse*.32;p.vy+=Math.sin(swirl)*disperse*.32}
         p.x+=p.vx;p.y+=p.vy;
+        // Wrap particles around the canvas so the floating field never runs out.
+        if(p.y < -18){p.y=h+18;p.x=Math.random()*w}
+        if(p.x < -24)p.x=w+24;
+        if(p.x > w+24)p.x=-24;
         const speed=Math.hypot(p.vx,p.vy);
         if(speed>5){p.vx=p.vx/speed*5;p.vy=p.vy/speed*5}
         const s=p.size,alpha=.5+settle*.45;
