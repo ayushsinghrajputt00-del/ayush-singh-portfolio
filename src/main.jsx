@@ -41,6 +41,7 @@ function SwarmCanvas() {
     const ctx = canvas?.getContext("2d");
     if (!ctx) return;
     let w=0,h=0,dpr=1,raf=0,startTime=0,px=-1000,py=-1000;
+    let scrollProgress=0,scrollEnergy=0,lastScroll=window.scrollY;
     const palette=["#f05b49","#e9b65f","#66c9bd","#b69be8","#e9e2d5"];
     let particles=[];
     const makeTargets=()=>{
@@ -71,25 +72,43 @@ function SwarmCanvas() {
           color:palette[i%palette.length]};
       });
     };
-    const pointer=e=>{px=e.clientX-innerWidth/2+w/2;py=e.clientY-innerHeight/2+h/2};
+    const pointer=e=>{
+      const rect=canvas.getBoundingClientRect();
+      px=e.clientX-rect.left;py=e.clientY-rect.top;
+    };
+    const scroll=()=>{
+      const max=document.documentElement.scrollHeight-innerHeight;
+      scrollProgress=max>0?window.scrollY/max:0;
+      const delta=window.scrollY-lastScroll;
+      scrollEnergy=Math.min(1,scrollEnergy+Math.min(1,Math.abs(delta)/90));
+      lastScroll=window.scrollY;
+    };
     const draw=now=>{
       if(!startTime)startTime=now;
       const elapsed=(now-startTime)/1000,cycle=elapsed%16;
       const gather=Math.max(0,Math.min(1,(cycle-1.1)/3.8));
       const disperse=cycle>11.5?Math.min(1,(cycle-11.5)/1.8):0;
+      const scrollWave=Math.sin(scrollProgress*Math.PI*5);
       const settle=gather*(1-disperse);
       ctx.clearRect(0,0,w,h);
       for(const p of particles){
         const orbit=1-settle;
-        const swirl=elapsed*.65+p.phase;
-        const tx=p.target.x+Math.cos(swirl)*orbit*95;
-        const ty=p.target.y+Math.sin(swirl*1.13)*orbit*65;
+        const swirl=elapsed*.65+p.phase+scrollProgress*5;
+        const waveX=Math.sin(scrollProgress* Math.PI*8+p.phase)*scrollProgress*34;
+        const waveY=Math.cos(scrollProgress* Math.PI*6+p.phase)*scrollProgress*24;
+        const tx=p.target.x+Math.cos(swirl)*orbit*95+waveX;
+        const ty=p.target.y+Math.sin(swirl*1.13)*orbit*65+waveY;
         const dx=tx-p.x,dy=ty-p.y;
         const spring=settle>.8?.035:.012;
         p.vx=(p.vx+dx*spring)*.91;
         p.vy=(p.vy+dy*spring)*.91;
         const mx=p.x-px,my=p.y-py,d=Math.hypot(mx,my);
-        if(d<95&&d>0){const push=(1-d/95)*.8;p.vx+=mx/d*push;p.vy+=my/d*push}
+        if(d<155&&d>0){
+          const influence=(1-d/155);
+          const swirlForce=influence*(1.25+scrollEnergy*1.8);
+          p.vx+=(-my/d)*swirlForce + (mx/d)*influence*.18;
+          p.vy+=(mx/d)*swirlForce + (my/d)*influence*.18;
+        }
         if(disperse>.05){p.vx+=Math.cos(swirl)*disperse*.32;p.vy+=Math.sin(swirl)*disperse*.32}
         p.x+=p.vx;p.y+=p.vy;
         const speed=Math.hypot(p.vx,p.vy);
@@ -98,13 +117,20 @@ function SwarmCanvas() {
         ctx.save();ctx.translate(p.x,p.y);
         ctx.globalAlpha=alpha;ctx.fillStyle=p.color;ctx.shadowColor=p.color;
         ctx.shadowBlur=settle>.65?8:3;
-        ctx.beginPath();ctx.arc(0,0,s*(.8+settle*.35),0,Math.PI*2);ctx.fill();ctx.restore();
+        ctx.beginPath();ctx.arc(0,0,s*(.8+settle*.35+scrollEnergy*.25),0,Math.PI*2);ctx.fill();ctx.restore();
       }
+      if(px>-500){
+        ctx.save();ctx.globalAlpha=.18+scrollEnergy*.15;ctx.strokeStyle="#e9b65f";ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(px,py,12+scrollEnergy*18+Math.sin(elapsed*4)*3,0,Math.PI*2);ctx.stroke();ctx.restore();
+      }
+      scrollEnergy*=.94;
       raf=requestAnimationFrame(draw);
     };
-    resize();addEventListener("resize",resize);addEventListener("pointermove",pointer,{passive:true});
+    resize();scroll();
+    addEventListener("resize",resize);addEventListener("pointermove",pointer,{passive:true});
+    addEventListener("scroll",scroll,{passive:true});
     raf=requestAnimationFrame(draw);
-    return()=>{cancelAnimationFrame(raf);removeEventListener("resize",resize);removeEventListener("pointermove",pointer)};
+    return()=>{cancelAnimationFrame(raf);removeEventListener("resize",resize);removeEventListener("pointermove",pointer);removeEventListener("scroll",scroll)};
   },[motionEnabled,reduce]);
   return <canvas className="swarm-canvas" aria-hidden="true" />;
 }
