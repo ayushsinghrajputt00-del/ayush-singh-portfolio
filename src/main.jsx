@@ -35,78 +35,52 @@ function Reveal({ children, delay = 0 }) {
 function SwarmCanvas() {
   const motionEnabled = useContext(MotionContext);
   const reduce = useReducedMotion();
-
   useEffect(() => {
     if (!motionEnabled || reduce) return;
     const canvas = document.querySelector(".swarm-canvas");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas?.getContext("2d");
     if (!ctx) return;
-
-    // Original Python/Pygame dimensions and particle setup.
-    const WIDTH = 800;
-    const HEIGHT = 600;
-    const FPS_INTERVAL = 1000 / 60;
-    canvas.width = WIDTH;
-    canvas.height = HEIGHT;
-
-    const boids = Array.from({ length: 50 }, () => ({
-      x: 400,
-      y: 300,
-      vx: Math.random() * 2 - 1,
-      vy: Math.random() * 2 - 1,
-      ax: 0,
-      ay: 0
+    let w=0,h=0,dpr=1,raf=0,last=0;
+    const palette=["#f05b49","#e9b65f","#66c9bd","#b69be8","#e9e2d5"];
+    const particles=Array.from({length:Math.min(180,Math.max(85,Math.floor(innerWidth/7)))},(_,i)=>({
+      x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,
+      size:2+Math.random()*3,phase:Math.random()*Math.PI*2,
+      orbit:.55+Math.random()*.9,color:palette[i%palette.length]
     }));
-
-    let frame = 0;
-    let lastFrameTime = 0;
-    let running = true;
-
-    const draw = (timestamp) => {
-      frame = 0;
-      if (!running) return;
-
-      if (timestamp - lastFrameTime >= FPS_INTERVAL) {
-        lastFrameTime = timestamp - ((timestamp - lastFrameTime) % FPS_INTERVAL);
-
-        // Pygame's screen.fill((20, 20, 20)) becomes a clear frame here,
-        // allowing the existing portfolio background to remain visible.
-        ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-        for (const boid of boids) {
-          // Same update as the supplied Python class: position += velocity.
-          boid.x += boid.vx;
-          boid.y += boid.vy;
-          boid.ax = 0;
-          boid.ay = 0;
-
-          ctx.beginPath();
-          ctx.fillStyle = "rgb(0, 255, 200)";
-          ctx.arc(boid.x, boid.y, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
+    const resize=()=>{dpr=Math.min(devicePixelRatio||1,2);w=innerWidth;h=innerHeight;canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.width=w+"px";canvas.style.height=h+"px";ctx.setTransform(dpr,0,0,dpr,0,0)};
+    resize();addEventListener("resize",resize);
+    let px=w/2,py=h/2;
+    const pointer=e=>{px=e.clientX;py=e.clientY};
+    addEventListener("pointermove",pointer,{passive:true});
+    const draw=time=>{
+      const dt=Math.min((time-(last||time))/16.67,2);last=time;
+      const t=time*.0002,cx=w/2+Math.sin(t*.5)*w*.025,cy=h*.49+Math.cos(t*.6)*h*.025;
+      const radius=Math.min(w,h)*.29;
+      ctx.clearRect(0,0,w,h);
+      for(let i=0;i<particles.length;i++){
+        const p=particles[i],phase=t+p.phase,orbit=radius*p.orbit;
+        const tx=cx+Math.cos(phase*(i%2?1:-.82))*orbit;
+        const ty=cy+Math.sin(phase*(i%2?1:-.82))*orbit*.68;
+        let ax=(tx-p.x)*.0017,ay=(ty-p.y)*.0017;
+        let sx=0,sy=0,avx=0,avy=0,n=0;
+        for(let j=0;j<particles.length;j+=3){if(i===j)continue;const q=particles[j],dx=p.x-q.x,dy=p.y-q.y,d2=dx*dx+dy*dy;if(d2>1&&d2<75*75){n++;avx+=q.vx;avy+=q.vy;if(d2<24*24){sx+=dx/d2;sy+=dy/d2}}}
+        if(n){ax+=(avx/n-p.vx)*.012+sx*7;ay+=(avy/n-p.vy)*.012+sy*7}
+        const dx=p.x-px,dy=p.y-py,d=Math.hypot(dx,dy);
+        if(d<135&&d>1){const force=(1-d/135)*.12;ax+=dx/d*force;ay+=dy/d*force}
+        p.vx=(p.vx+ax*dt)*.992;p.vy=(p.vy+ay*dt)*.992;
+        const speed=Math.hypot(p.vx,p.vy)||1;if(speed>2.4){p.vx=p.vx/speed*2.4;p.vy=p.vy/speed*2.4}
+        p.x+=p.vx*dt;p.y+=p.vy*dt;
+        if(p.x<-15)p.x=w+15;if(p.x>w+15)p.x=-15;if(p.y<-15)p.y=h+15;if(p.y>h+15)p.y=-15;
+        const angle=Math.atan2(p.vy,p.vx)+Math.sin(phase*2)*.2,s=p.size;
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(angle);ctx.beginPath();ctx.moveTo(s*1.7,0);ctx.lineTo(-s,s*.8);ctx.lineTo(-s*.65,-s*.8);ctx.closePath();ctx.fillStyle=p.color;ctx.globalAlpha=.78;ctx.shadowColor=p.color;ctx.shadowBlur=7;ctx.fill();ctx.restore();
       }
-
-      frame = requestAnimationFrame(draw);
+      raf=requestAnimationFrame(draw);
     };
-
-    const onVisibilityChange = () => {
-      running = !document.hidden;
-      if (running && !frame) frame = requestAnimationFrame(draw);
-    };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    frame = requestAnimationFrame(draw);
-
-    return () => {
-      running = false;
-      cancelAnimationFrame(frame);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [motionEnabled, reduce]);
-
-  return <canvas className="swarm-canvas" width="800" height="600" aria-hidden="true" />;
+    raf=requestAnimationFrame(draw);
+    return()=>{cancelAnimationFrame(raf);removeEventListener("resize",resize);removeEventListener("pointermove",pointer)};
+  },[motionEnabled,reduce]);
+  return <canvas className="swarm-canvas" aria-hidden="true" />;
 }
 
 function App() {
