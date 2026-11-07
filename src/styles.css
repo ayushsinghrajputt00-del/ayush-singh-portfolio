@@ -19,7 +19,7 @@
 
 
 /* Original Python swarm, rendered on a transparent 800x600 canvas */
-.swarm-canvas{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(800px,100vw,133.333vh);height:auto;aspect-ratio:4/3;display:block;pointer-events:none;z-index:1;opacity:1}
+.swarm-canvas{position:fixed;inset:0;left:0;top:0;transform:none;width:100vw;height:100vh;aspect-ratio:auto;display:block;pointer-events:none;z-index:1;opacity:1}
 main,.footer{position:relative;z-index:2}
 .header{z-index:20}
 .progress{z-index:30}
