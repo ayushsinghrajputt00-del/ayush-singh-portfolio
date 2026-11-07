@@ -28,7 +28,7 @@ main,.footer{position:relative;z-index:2}
 
 /* Original page-reconstruction sequence */
 body.rebuild-running{overflow-x:hidden}
-body.rebuild-running #root{visibility:hidden}
+body.rebuild-running #root{visibility:visible;opacity:0;pointer-events:none;transition:opacity 2.8s ease}
 .rebuild-canvas{position:fixed;inset:0;z-index:9998;pointer-events:none;background:#050709}
 .rebuild-hud{position:fixed;z-index:9999;left:50%;bottom:22px;transform:translateX(-50%);width:min(620px,calc(100% - 28px));padding:15px 17px 12px;background:rgba(10,12,14,.94);border:1px solid rgba(201,170,117,.35);box-shadow:0 15px 60px #0009;color:#eeeae3;font:9px "DM Mono",monospace;letter-spacing:.8px;backdrop-filter:blur(14px)}
 .rebuild-head,.rebuild-meta,.rebuild-controls{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -40,3 +40,6 @@ body.rebuild-running #root{visibility:hidden}
 .rebuild-controls button{border:1px solid #ffffff20;background:transparent;color:#c9c2b6;padding:7px 9px;font:8px "DM Mono",monospace;letter-spacing:.5px;cursor:pointer}
 .rebuild-controls button:hover{border-color:#c9aa75;color:#c9aa75}
 @media(max-width:520px){.rebuild-hud{bottom:10px;padding:12px}.rebuild-controls{gap:6px}.rebuild-controls button{font-size:7px;padding:7px}.rebuild-meta{font-size:7px}}
+
+body #root{transition:opacity 2.8s ease}
+body.rebuild-running #root{opacity:0}
