@@ -31,90 +31,12 @@ function Reveal({ children, delay = 0 }) {
 }
 
 
-function SwarmExperience() {
-  const canvasRef = React.useRef(null);
-  const reduce = useReducedMotion();
-  const motionEnabled = useContext(MotionContext);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || reduce || !motionEnabled) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    let width = 0, height = 0, raf = 0, last = 0;
-    const touchMode = window.matchMedia("(pointer: coarse)").matches;
-    const pointer = { x: window.innerWidth * .5, y: window.innerHeight * .42, active: touchMode };
-    const agents = Array.from({ length: 8 }, (_, i) => ({ x: pointer.x, y: pointer.y, angle: 0, hue: i }));
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      width = window.innerWidth; height = window.innerHeight;
-      canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
-      canvas.style.width = width + "px"; canvas.style.height = height + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    const move = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; };
-    const touchMove = e => { const t = e.touches && e.touches[0]; if (t) move(t); };
-    const leave = () => { pointer.active = false; };
-    const drawCursor = (x, y, index, alpha) => {
-      const size = index === 0 ? 12 : 7;
-      const offset = index * .16;
-      ctx.save(); ctx.translate(x, y); ctx.rotate(offset);
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = index === 0 ? "rgba(201,170,117,.9)" : index % 3 === 0 ? "rgba(196,91,77,.7)" : "rgba(238,234,227,.42)";
-      ctx.lineWidth = index === 0 ? 1.35 : .85;
-      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(size * .45,size * 1.2); ctx.lineTo(size * .62,size * .72); ctx.lineTo(size * 1.05,size * .58); ctx.closePath(); ctx.stroke();
-      if (index === 0) {
-        ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.strokeStyle = "rgba(201,170,117,.22)"; ctx.stroke();
-      }
-      ctx.restore();
-    };
-    const tick = time => {
-      raf = requestAnimationFrame(tick);
-      if (time - last < 32) return;
-      last = time;
-      ctx.clearRect(0,0,width,height);
-      if (!pointer.active) return;
-      agents.forEach((a,i) => {
-        const lag = .13 - i * .009;
-        const ox = Math.cos(i * 2.4) * (i * 3.2);
-        const oy = Math.sin(i * 2.4) * (i * 3.2);
-        a.x += (pointer.x + ox - a.x) * lag;
-        a.y += (pointer.y + oy - a.y) * lag;
-        drawCursor(a.x,a.y,i,Math.max(.22,.86-i*.075));
-      });
-      const lead = agents[0];
-      ctx.beginPath(); ctx.arc(lead.x,lead.y,25,0,Math.PI*2);
-      ctx.strokeStyle = "rgba(201,170,117,.12)"; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = "rgba(201,170,117,.65)"; ctx.font = "8px 'DM Mono', monospace";
-      ctx.fillText("SWARM / ACTIVE", lead.x + 22, lead.y - 19);
-    };
-    resize();
-    window.addEventListener("resize",resize);
-    window.addEventListener("pointermove",move,{passive:true});
-    window.addEventListener("touchstart",touchMove,{passive:true});
-    window.addEventListener("touchmove",touchMove,{passive:true});
-    window.addEventListener("blur",leave);
-    document.addEventListener("mouseleave",leave);
-    raf = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize",resize);
-      window.removeEventListener("pointermove",move);
-      window.removeEventListener("touchstart",touchMove);
-      window.removeEventListener("touchmove",touchMove);
-      window.removeEventListener("blur",leave);
-      document.removeEventListener("mouseleave",leave);
-    };
-  }, [reduce,motionEnabled]);
-  if (reduce || !motionEnabled) return null;
-  return <canvas ref={canvasRef} className="swarm-canvas" aria-hidden="true" />;
-}
-
 function App() {
   const [menu,setMenu]=useState(false),[motionOn,setMotionOn]=useState(true);
   useEffect(()=>{const scroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty("--progress",max>0?scrollY/max*100+"%":"0%")};addEventListener("scroll",scroll,{passive:true});scroll();return()=>removeEventListener("scroll",scroll)},[]);
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Tools","#skills"],["06","Work","#work"]];
   return <MotionContext.Provider value={motionOn}><>
-    <SwarmExperience/><div className="progress"/>
+    <div className="progress"/>
     <header className="header">
       <a className="brand" href="#top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu">☰</button>
