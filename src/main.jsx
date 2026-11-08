@@ -36,144 +36,174 @@ function RebuildEffect() {
   useEffect(() => {
     const root = document.getElementById("root");
     if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let cancelled = false, raf = 0, scrollTimer = 0;
-    let speed = 1, phase = "SCAN", started = 0, items = [], agents = [], swarm = [];
-    const oldScroll = window.scrollY;
+    let raf = 0, cancelled = false, revealing = false, revealStarted = 0, finished = false;
+    const width = window.innerWidth, height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const canvas = document.createElement("canvas");
     canvas.className = "rebuild-canvas";
+    canvas.style.background = "transparent";
+    canvas.style.zIndex = "9998";
+    canvas.style.pointerEvents = "none";
+    canvas.width = Math.ceil(width * dpr);
+    canvas.height = Math.ceil(height * dpr);
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
     const ctx = canvas.getContext("2d");
-    const hud = document.createElement("div");
-    hud.className = "rebuild-hud";
-    hud.innerHTML = '<div class="rebuild-head"><span><i></i> SAAI / PAGE RECONSTRUCTION</span><b class="rebuild-phase">SCANNING DOM</b></div><div class="rebuild-progress"><i></i></div><div class="rebuild-meta"><span class="rebuild-count">0 ELEMENTS MAPPED</span><span class="rebuild-percent">00%</span><span>AGENTS / 04</span></div><div class="rebuild-controls"><button data-action="tour">TOUR / AUTO</button><button data-action="speed">SPEED / 1×</button><button data-action="replay">↻ REPLAY</button><button data-action="live">GO LIVE ↗</button><button data-action="close">CLOSE ×</button></div>';
-    document.body.append(canvas, hud);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    document.body.appendChild(canvas);
     document.body.classList.add("rebuild-running");
-    const resize = () => {
-      const dpr = Math.min(devicePixelRatio || 1, 2);
-      canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
-      canvas.style.width = innerWidth + "px"; canvas.style.height = innerHeight + "px";
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-    };
-    const scan = () => {
-      const nodes = [...root.querySelectorAll("header,section,footer,article,h1,h2,h3,p,a,button,img,svg,.metric-card,.project-visual")];
-      items = nodes.map((el,i) => {
-        const r=el.getBoundingClientRect();
-        const x=r.left+scrollX,y=r.top+scrollY;
-        return {x,y,w:r.width,h:r.height,tag:el.tagName.toLowerCase(),text:(el.innerText||el.getAttribute("alt")||"").trim().slice(0,90),i};
-      }).filter(o=>o.w>5&&o.h>5&&o.y<document.documentElement.scrollHeight);
-      agents = Array.from({length:4},(_,i)=>({x:innerWidth*(.15+i*.22),y:innerHeight*.3,phase:i*.22}));
-      const colors=["#f05b49","#e9b65f","#66c9bd","#b69be8"];
-      swarm=Array.from({length:760},(_,i)=>{
-        const group=i%4, angle=Math.random()*Math.PI*2, radius=35+Math.random()*210;
-        return {group,x:group%2===0?-30:innerWidth+30,y:Math.random()*innerHeight,
-          tx:innerWidth*(.18+group*.215)+(Math.random()-.5)*150,
-          ty:innerHeight*(.28+(group%2)*.42)+(Math.random()-.5)*130,
-          vx:0,vy:0,size:.7+Math.random()*1.6,alpha:.35+Math.random()*.6,
-          color:colors[group],phase:angle,radius,seed:Math.random()*100};
-      });
-      hud.querySelector(".rebuild-count").textContent=items.length+" ELEMENTS MAPPED";
-    };
-    const finish = () => {
-      phase="LIVE";
-      document.body.classList.remove("rebuild-running");
-      canvas.remove(); hud.remove(); window.scrollTo({top:0,behavior:"instant"});
-      removeEventListener("resize",resize);
-    };
-    const replay = () => {
-      document.body.classList.add("rebuild-running");
-      window.scrollTo({top:0,behavior:"instant"});
-      phase="SCAN"; started=performance.now(); scan();
-    };
-    hud.addEventListener("click",e=>{
-      const action=e.target?.dataset?.action;
-      if(action==="close"||action==="live") finish();
-      if(action==="replay") replay();
-      if(action==="speed"){speed=speed===1?1.7:speed===1.7?2.5:1;hud.querySelector('[data-action="speed"]').textContent="SPEED / "+speed+"×";}
-      if(action==="tour"){const b=hud.querySelector('[data-action="tour"]');b.textContent=b.textContent.includes("AUTO")?"TOUR / PAUSED":"TOUR / AUTO";}
-    });
-    const draw = now => {
-      if(cancelled)return;
-      if(!started)started=now;
-      const elapsed=(now-started)/1000;
-      const scanDuration=0.01, buildDuration=13/speed;
-      if(phase==="SCAN"){
-        const p=Math.min(1,elapsed/scanDuration);
-        window.scrollTo(0,Math.max(0,(document.documentElement.scrollHeight-innerHeight)*p));
-        if(p>=1){scan();phase="BUILD";started=now;window.scrollTo(0,0);}
-      } else if(phase==="BUILD"){
-        const p=Math.min(1,elapsed/buildDuration);
-        const active=Math.floor(items.length*p);
-        const maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);
-        const targetY=maxScroll*p;
-        const tour=hud.querySelector('[data-action="tour"]').textContent.includes("AUTO");
-        if(tour)window.scrollTo(0,targetY);
-        ctx.clearRect(0,0,innerWidth,innerHeight);
-        ctx.fillStyle="rgba(5,7,9,.97)";ctx.fillRect(0,0,innerWidth,innerHeight);
-        const scroll=window.scrollY;
-        ctx.lineWidth=1;
-        items.forEach((o,i)=>{
-          const x=o.x,y=o.y-scroll;
-          if(y>innerHeight+80||y+o.h< -80)return;
-          const done=i<active, current=i>=active&&i<active+10;
-          ctx.strokeStyle=done?"rgba(201,170,117,.27)":current?"rgba(239,91,73,.95)":"rgba(135,153,164,.2)";
-          ctx.fillStyle=done?"rgba(201,170,117,.035)":"rgba(110,145,165,.025)";
-          ctx.fillRect(x,y,o.w,o.h);ctx.strokeRect(x,y,o.w,o.h);
-          if(o.h>24&&o.w>45){
-            ctx.strokeStyle=done?"rgba(238,234,227,.25)":"rgba(151,169,180,.23)";
-            const lines=Math.min(3,Math.max(1,Math.floor(o.h/18)));
-            for(let n=0;n<lines;n++){const yy=y+Math.min(o.h-5,10+n*13);ctx.beginPath();ctx.moveTo(x+7,yy);ctx.lineTo(x+Math.max(12,o.w*(.42+((i+n)%4)*.12)),yy);ctx.stroke();}
-          }
-        });
-        agents.forEach((a,i)=>{
-          const idx=Math.min(items.length-1,Math.floor(active+(i-1.5)*8));
-          const o=items[Math.max(0,idx)]||{x:innerWidth/2,y:scroll+innerHeight/2,w:80,h:40};
-          const tx=Math.max(8,Math.min(innerWidth-8,o.x+o.w*.5));
-          const ty=o.y-scroll+Math.min(o.h*.5,20);
-          a.x+=(tx-a.x)*.14;a.y+=(ty-a.y)*.14;
-          ctx.save();ctx.translate(a.x,a.y);ctx.strokeStyle=["#f05b49","#e9b65f","#66c9bd","#b69be8"][i];ctx.lineWidth=1.3;
-          ctx.beginPath();ctx.moveTo(-13,0);ctx.lineTo(13,0);ctx.moveTo(0,-13);ctx.lineTo(0,13);ctx.stroke();
-          ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.stroke();
-          ctx.font="9px monospace";ctx.fillStyle=ctx.strokeStyle;ctx.fillText("AGENT_0"+(i+1),9,-10);ctx.restore();
-        });
-        hud.querySelector(".rebuild-progress i").style.width=(p*100)+"%";
-        hud.querySelector(".rebuild-percent").textContent=String(Math.floor(p*100)).padStart(2,"0")+"%";
-        hud.querySelector(".rebuild-phase").textContent=p>=1?"RECONSTRUCTION COMPLETE":"BUILDING LAYERS";
-        if(p>=1){phase="SWARM";started=now;hud.querySelector(".rebuild-phase").textContent="SWARM CONVERGENCE";hud.querySelector(".rebuild-count").textContent="760 PARTICLES / 04 GROUPS";}
-      } else if(phase==="SWARM"){
-        const p=Math.min(1,elapsed/4.2);
-        ctx.fillStyle="rgba(5,7,9,.24)";ctx.fillRect(0,0,innerWidth,innerHeight);
-        agents.forEach((a,i)=>{
-          const gx=innerWidth*(.18+i*.215),gy=innerHeight*(.28+(i%2)*.42);
-          a.x+=(gx-a.x)*.055;a.y+=(gy-a.y)*.055;
-        });
-        swarm.forEach(q=>{
-          const spiral=q.phase+now*.0018+q.seed;
-          const tx=q.tx+(1-p)*Math.cos(spiral)*q.radius*.35;
-          const ty=q.ty+(1-p)*Math.sin(spiral)*q.radius*.35;
-          q.vx=(q.vx+(tx-q.x)*.018)*.91;
-          q.vy=(q.vy+(ty-q.y)*.018)*.91;
-          q.x+=q.vx;q.y+=q.vy;
-          ctx.globalAlpha=q.alpha*(.45+p*.55);
-          ctx.fillStyle=q.color;ctx.shadowColor=q.color;ctx.shadowBlur=5;
-          ctx.beginPath();ctx.arc(q.x,q.y,q.size,0,Math.PI*2);ctx.fill();
-          if(Math.random()<.25){ctx.globalAlpha=.14;ctx.strokeStyle=q.color;ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-q.vx*3,q.y-q.vy*3);ctx.stroke();}
-        });
-        agents.forEach((a,i)=>{
-          ctx.globalAlpha=.9;ctx.shadowBlur=0;ctx.strokeStyle=["#f05b49","#e9b65f","#66c9bd","#b69be8"][i];ctx.lineWidth=1.2;
-          ctx.beginPath();ctx.moveTo(a.x-12,a.y);ctx.lineTo(a.x+12,a.y);ctx.moveTo(a.x,a.y-12);ctx.lineTo(a.x,a.y+12);ctx.stroke();
-        });
-        ctx.globalAlpha=1;ctx.shadowBlur=0;
-        hud.querySelector(".rebuild-progress i").style.width=(p*100)+"%";
-        hud.querySelector(".rebuild-percent").textContent=String(Math.floor(p*100)).padStart(2,"0")+"%";
-        hud.querySelector(".rebuild-phase").textContent="GROUPED PARTICLES / CONVERGING";
-        if(p>=1){hud.querySelector(".rebuild-phase").textContent="SITE REVEAL";setTimeout(()=>{if(!cancelled)finish()},250);}
+
+    const maskScale = Math.min(0.78, 900 / Math.max(width, 1));
+    const mask = document.createElement("canvas");
+    mask.width = Math.ceil(width * maskScale);
+    mask.height = Math.ceil(height * maskScale);
+    const maskCtx = mask.getContext("2d");
+    maskCtx.setTransform(maskScale, 0, 0, maskScale, 0, 0);
+    maskCtx.fillStyle = "#ffffff";
+    maskCtx.strokeStyle = "#ffffff";
+    maskCtx.lineWidth = 1;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const parent = node.parentElement;
+      const value = (node.textContent || "").replace(/\s+/g, " ").trim();
+      if (!parent || !value) continue;
+      const style = getComputedStyle(parent);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const rects = Array.from(range.getClientRects()).filter(rect => rect.width > 1 && rect.height > 1);
+      if (!rects.length) continue;
+      maskCtx.font = style.font || [
+        style.fontStyle, style.fontVariant, style.fontWeight, style.fontSize, style.fontFamily
+      ].join(" ");
+      maskCtx.textBaseline = "alphabetic";
+      const words = value.split(" ");
+      let line = "", lineIndex = 0;
+      const paintLine = () => {
+        const rect = rects[Math.min(lineIndex, rects.length - 1)];
+        if (line && rect) maskCtx.fillText(line, rect.left, rect.top + rect.height * 0.8, Math.max(4, rect.width));
+      };
+      for (const word of words) {
+        const rect = rects[Math.min(lineIndex, rects.length - 1)];
+        if (!rect) break;
+        const candidate = line ? line + " " + word : word;
+        if (line && maskCtx.measureText(candidate).width > rect.width && lineIndex < rects.length - 1) {
+          paintLine();
+          lineIndex += 1;
+          line = word;
+        } else line = candidate;
       }
-      raf=requestAnimationFrame(draw);
+      paintLine();
+    }
+
+    // Keep the page's real dividers and hero orbits, never blueprint boxes.
+    root.querySelectorAll(".hero-topline,.hero-bottom,.metrics,.section-label,.focus-row,.timeline-row,.footer,.contact-foot").forEach(element => {
+      const rect = element.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > height || rect.width < 10) return;
+      const style = getComputedStyle(element);
+      const bottom = parseFloat(style.borderBottomWidth) || 0;
+      const top = parseFloat(style.borderTopWidth) || 0;
+      if (bottom > 0) maskCtx.fillRect(rect.left, rect.bottom - bottom, rect.width, Math.max(1, bottom));
+      if (top > 0) maskCtx.fillRect(rect.left, rect.top, rect.width, Math.max(1, top));
+    });
+    root.querySelectorAll(".hero-art .orbit").forEach(element => {
+      const rect = element.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > height) return;
+      maskCtx.save();
+      maskCtx.beginPath();
+      maskCtx.ellipse(rect.left + rect.width / 2, rect.top + rect.height / 2,
+        Math.max(2, rect.width * 0.48), Math.max(2, rect.height * 0.48), 0, 0, Math.PI * 2);
+      maskCtx.stroke();
+      maskCtx.restore();
+    });
+
+    const pixels = maskCtx.getImageData(0, 0, mask.width, mask.height).data;
+    const targets = [];
+    for (let y = 0; y < mask.height; y += 2) {
+      for (let x = 0; x < mask.width; x += 2) {
+        if (pixels[(y * mask.width + x) * 4 + 3] > 70 && Math.random() < 0.82) {
+          targets.push({ x: x / maskScale, y: y / maskScale });
+        }
+      }
+    }
+    for (let i = targets.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [targets[i], targets[j]] = [targets[j], targets[i]];
+    }
+    const maxParticles = width < 700 ? 1250 : 2100;
+    const palette = ["#f05b49", "#e9b65f", "#66c9bd", "#b69be8"];
+    const particles = targets.slice(0, maxParticles).map(target => {
+      const edge = Math.floor(Math.random() * 4);
+      let x = Math.random() * width, y = Math.random() * height;
+      if (edge === 0) x = -25 - Math.random() * width * 0.25;
+      if (edge === 1) x = width + 25 + Math.random() * width * 0.25;
+      if (edge === 2) y = -25 - Math.random() * height * 0.25;
+      if (edge === 3) y = height + 25 + Math.random() * height * 0.25;
+      return {
+        sx: x, sy: y, tx: target.x, ty: target.y,
+        delay: Math.random() * 0.34,
+        size: 0.65 + Math.random() * 1.05,
+        color: palette[Math.floor(Math.random() * palette.length)],
+        seed: Math.random() * Math.PI * 2
+      };
+    });
+
+    const started = performance.now(), gatherDuration = 5.1, fadeDuration = 4500;
+    const onResize = () => finish();
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      document.body.classList.remove("rebuild-running");
+      canvas.remove();
+      removeEventListener("resize", onResize);
     };
-    resize();scan();started=performance.now();
-    addEventListener("resize",resize);
-    raf=requestAnimationFrame(draw);
-    return()=>{cancelled=true;cancelAnimationFrame(raf);clearTimeout(scrollTimer);removeEventListener("resize",resize);document.body.classList.remove("rebuild-running");canvas.remove();hud.remove();};
-  },[]);
+    addEventListener("resize", onResize, { once: true });
+
+    const draw = now => {
+      if (cancelled || finished) return;
+      const elapsed = (now - started) / 1000;
+      if (!revealing && elapsed >= gatherDuration) {
+        revealing = true;
+        revealStarted = now;
+        document.body.classList.remove("rebuild-running");
+      }
+      ctx.clearRect(0, 0, width, height);
+      const fade = revealing ? Math.max(0, 1 - (now - revealStarted) / fadeDuration) : 1;
+      for (const particle of particles) {
+        const progress = Math.max(0, Math.min(1, (elapsed - particle.delay) / (gatherDuration - particle.delay)));
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const drift = (1 - eased) * 7;
+        const x = particle.sx + (particle.tx - particle.sx) * eased + Math.sin(now * 0.0012 + particle.seed) * drift;
+        const y = particle.sy + (particle.ty - particle.sy) * eased + Math.cos(now * 0.0011 + particle.seed) * drift;
+        ctx.globalAlpha = fade * (0.42 + 0.58 * progress);
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(x, y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (revealing && fade <= 0) {
+        finish();
+        return;
+      }
+      raf = requestAnimationFrame(draw);
+    };
+
+    if (!particles.length) {
+      finish();
+      return;
+    }
+    raf = requestAnimationFrame(draw);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      document.body.classList.remove("rebuild-running");
+      canvas.remove();
+      removeEventListener("resize", onResize);
+    };
+  }, []);
   return null;
 }
 function App() {
