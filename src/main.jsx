@@ -150,7 +150,7 @@ function RebuildEffect() {
       };
     });
 
-    const started = performance.now(), gatherDuration = 5.1, fadeDuration = 4500;
+    const started = performance.now(), gatherDuration = 5.1, settleDuration = 0.85, fadeDuration = 1300;
     const onResize = () => finish();
     const finish = () => {
       if (finished) return;
@@ -164,7 +164,8 @@ function RebuildEffect() {
     const draw = now => {
       if (cancelled || finished) return;
       const elapsed = (now - started) / 1000;
-      if (!revealing && elapsed >= gatherDuration) {
+      if (!revealing && elapsed >= gatherDuration + settleDuration) {
+        // Keep the page completely hidden on black until every particle has settled.
         revealing = true;
         revealStarted = now;
         document.body.classList.remove("rebuild-running");
