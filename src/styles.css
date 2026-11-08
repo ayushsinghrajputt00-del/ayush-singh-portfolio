@@ -30,5 +30,5 @@ main,.footer{position:relative;z-index:2}
 body.rebuild-running{overflow-x:hidden}
 body.rebuild-running #root{visibility:visible;opacity:0;pointer-events:none;transition:opacity 4.5s ease}
 .rebuild-canvas{position:fixed;inset:0;z-index:9998;pointer-events:none;background:transparent}
-body #root{transition:opacity 4.5s ease}
+body #root{transition:opacity 1.3s ease}
 body.rebuild-running #root{opacity:0}
