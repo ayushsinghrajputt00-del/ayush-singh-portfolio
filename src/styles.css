@@ -26,20 +26,9 @@ main,.footer{position:relative;z-index:2}
 @media(prefers-reduced-motion:reduce){.swarm-canvas{display:none}}
 
 
-/* Original page-reconstruction sequence */
+/* Particle-built page reveal */
 body.rebuild-running{overflow-x:hidden}
 body.rebuild-running #root{visibility:visible;opacity:0;pointer-events:none;transition:opacity 4.5s ease}
-.rebuild-canvas{position:fixed;inset:0;z-index:9998;pointer-events:none;background:#050709}
-.rebuild-hud{position:fixed;z-index:9999;left:50%;bottom:22px;transform:translateX(-50%);width:min(620px,calc(100% - 28px));padding:15px 17px 12px;background:rgba(10,12,14,.94);border:1px solid rgba(201,170,117,.35);box-shadow:0 15px 60px #0009;color:#eeeae3;font:9px "DM Mono",monospace;letter-spacing:.8px;backdrop-filter:blur(14px)}
-.rebuild-head,.rebuild-meta,.rebuild-controls{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.rebuild-head{font-size:9px;color:#d8d0c2}.rebuild-head>span{display:flex;align-items:center;gap:8px}.rebuild-head i{width:6px;height:6px;border-radius:50%;background:#76a88b;box-shadow:0 0 10px #76a88b}
-.rebuild-phase{font-weight:400;color:#c9aa75;font-size:8px}
-.rebuild-progress{height:2px;background:#ffffff18;margin:13px 0 9px}.rebuild-progress i{display:block;height:100%;width:0;background:#c45b4d;transition:width .12s linear}
-.rebuild-meta{color:#88847c;font-size:8px}.rebuild-percent{color:#eeeae3}
-.rebuild-controls{justify-content:flex-start;flex-wrap:wrap;margin-top:13px;padding-top:10px;border-top:1px solid #ffffff16}
-.rebuild-controls button{border:1px solid #ffffff20;background:transparent;color:#c9c2b6;padding:7px 9px;font:8px "DM Mono",monospace;letter-spacing:.5px;cursor:pointer}
-.rebuild-controls button:hover{border-color:#c9aa75;color:#c9aa75}
-@media(max-width:520px){.rebuild-hud{bottom:10px;padding:12px}.rebuild-controls{gap:6px}.rebuild-controls button{font-size:7px;padding:7px}.rebuild-meta{font-size:7px}}
-
+.rebuild-canvas{position:fixed;inset:0;z-index:9998;pointer-events:none;background:transparent}
 body #root{transition:opacity 4.5s ease}
 body.rebuild-running #root{opacity:0}
