@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -84,16 +84,16 @@ function App() {
       </section>
       <section className="section shell" id="focus">
         <div className="section-label"><span>03 / AREAS OF INTEREST</span><span>AREAS OF FOCUS</span></div><h2 className="section-heading">A few interests.<br/><em>Room to explore.</em></h2>
-        <div className="focus-list">{focus.map(([n,t,d],i)=><article className="focus-row"><span className="number">{n}</span><h3>{t}</h3><p>{d}</p><b>↗</b></article>)}</div>
+        <div className="focus-list">{focus.map(([n,t,d],i)=><article className="focus-row" key={n}><span className="number">{n}</span><h3>{t}</h3><p>{d}</p><b>↗</b></article>)}</div>
       </section>
       <section className="section shell" id="skills">
         <div className="section-label"><span>04 / TOOLS & TECHNOLOGY</span><span>USED IN CURRENT PROJECTS</span></div><h2 className="section-heading">Tools I use to<br/><em>make ideas real.</em></h2>
-        <div className="skills-grid">{tools.map(([n,t,d],i)=><article className="skill-card"><span className="number">{n}</span><div><h3>{t}</h3><p>{d}</p></div><b>↗</b></article>)}</div>
+        <div className="skills-grid">{tools.map(([n,t,d],i)=><article className="skill-card" key={n}><span className="number">{n}</span><div><h3>{t}</h3><p>{d}</p></div><b>↗</b></article>)}</div>
         <p className="skills-note">A practical toolset demonstrated through this portfolio project, not a claim of expert-level proficiency.</p>
       </section>
       <section className="section shell" id="journey">
         <div className="section-label"><span>05 / LEARNING JOURNEY</span><span>LEARNING IN PROGRESS</span></div><h2 className="section-heading">Progress is a practice.<br/><em>Not a finish line.</em></h2>
-        <div className="timeline">{journey.map(([t,s,d],i)=><article className="timeline-row"><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>↗</b></article>)}</div>
+        <div className="timeline">{journey.map(([t,s,d],i)=><article className="timeline-row" key={t}><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>↗</b></article>)}</div>
       </section>
       <section className="section shell" id="work">
         <div className="section-label"><span>06 / SELECTED WORK</span><span>PROJECT ARCHIVE</span></div><div className="work-title"><h2 className="section-heading">Proof of <em>practice.</em></h2><span>01-03 / INDEX</span></div>
