@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { motion, useReducedMotion } from "framer-motion";
 import "./styles.css";
 
 const focus = [
@@ -22,201 +21,18 @@ const journey = [
   ["Execution", "Turn plans into action", "Create, test, learn from feedback and improve the next attempt."]
 ];
 
-const MotionContext = React.createContext(true);
-function Reveal({ children, delay = 0 }) {
-  const reduce = useReducedMotion();
-  const motionEnabled = useContext(MotionContext);
-  const active = motionEnabled && !reduce;
-  return <motion.div initial={active ? { opacity: 0, y: 22 } : false} whileInView={active ? { opacity: 1, y: 0 } : undefined} viewport={{ once: true, amount: .15 }} transition={{ duration: .7, delay, ease: [.22, 1, .36, 1] }}>{children}</motion.div>;
-}
+function Reveal({ children }) { return <>{children}</>; }
 
-
-
-function RebuildEffect() {
-  useEffect(() => {
-    const root = document.getElementById("root");
-    if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0, cancelled = false, revealing = false, revealStarted = 0, finished = false;
-    const width = window.innerWidth, height = window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const canvas = document.createElement("canvas");
-    canvas.className = "rebuild-canvas";
-    canvas.style.background = "transparent";
-    canvas.style.zIndex = "9998";
-    canvas.style.pointerEvents = "none";
-    canvas.width = Math.ceil(width * dpr);
-    canvas.height = Math.ceil(height * dpr);
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    document.body.appendChild(canvas);
-    document.body.classList.add("rebuild-running");
-
-    const maskScale = Math.min(0.78, 900 / Math.max(width, 1));
-    const mask = document.createElement("canvas");
-    mask.width = Math.ceil(width * maskScale);
-    mask.height = Math.ceil(height * maskScale);
-    const maskCtx = mask.getContext("2d");
-    maskCtx.setTransform(maskScale, 0, 0, maskScale, 0, 0);
-    maskCtx.fillStyle = "#ffffff";
-    maskCtx.strokeStyle = "#ffffff";
-    maskCtx.lineWidth = 1;
-
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let node;
-    while ((node = walker.nextNode())) {
-      const parent = node.parentElement;
-      const value = (node.textContent || "").replace(/\s+/g, " ").trim();
-      if (!parent || !value) continue;
-      const style = getComputedStyle(parent);
-      if (style.display === "none" || style.visibility === "hidden") continue;
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      const rects = Array.from(range.getClientRects()).filter(rect => rect.width > 1 && rect.height > 1);
-      if (!rects.length) continue;
-      maskCtx.font = style.font || [
-        style.fontStyle, style.fontVariant, style.fontWeight, style.fontSize, style.fontFamily
-      ].join(" ");
-      maskCtx.textBaseline = "alphabetic";
-      const words = value.split(" ");
-      let line = "", lineIndex = 0;
-      const paintLine = () => {
-        const rect = rects[Math.min(lineIndex, rects.length - 1)];
-        if (line && rect) maskCtx.fillText(line, rect.left, rect.top + rect.height * 0.8, Math.max(4, rect.width));
-      };
-      for (const word of words) {
-        const rect = rects[Math.min(lineIndex, rects.length - 1)];
-        if (!rect) break;
-        const candidate = line ? line + " " + word : word;
-        if (line && maskCtx.measureText(candidate).width > rect.width && lineIndex < rects.length - 1) {
-          paintLine();
-          lineIndex += 1;
-          line = word;
-        } else line = candidate;
-      }
-      paintLine();
-    }
-
-    // Keep the page's real dividers and hero orbits, never blueprint boxes.
-    root.querySelectorAll(".hero-topline,.hero-bottom,.metrics,.section-label,.focus-row,.timeline-row,.footer,.contact-foot").forEach(element => {
-      const rect = element.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > height || rect.width < 10) return;
-      const style = getComputedStyle(element);
-      const bottom = parseFloat(style.borderBottomWidth) || 0;
-      const top = parseFloat(style.borderTopWidth) || 0;
-      if (bottom > 0) maskCtx.fillRect(rect.left, rect.bottom - bottom, rect.width, Math.max(1, bottom));
-      if (top > 0) maskCtx.fillRect(rect.left, rect.top, rect.width, Math.max(1, top));
-    });
-    root.querySelectorAll(".hero-art .orbit").forEach(element => {
-      const rect = element.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > height) return;
-      maskCtx.save();
-      maskCtx.beginPath();
-      maskCtx.ellipse(rect.left + rect.width / 2, rect.top + rect.height / 2,
-        Math.max(2, rect.width * 0.48), Math.max(2, rect.height * 0.48), 0, 0, Math.PI * 2);
-      maskCtx.stroke();
-      maskCtx.restore();
-    });
-
-    const pixels = maskCtx.getImageData(0, 0, mask.width, mask.height).data;
-    const targets = [];
-    for (let y = 0; y < mask.height; y += 2) {
-      for (let x = 0; x < mask.width; x += 2) {
-        if (pixels[(y * mask.width + x) * 4 + 3] > 70 && Math.random() < 0.82) {
-          targets.push({ x: x / maskScale, y: y / maskScale });
-        }
-      }
-    }
-    for (let i = targets.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [targets[i], targets[j]] = [targets[j], targets[i]];
-    }
-    const maxParticles = width < 700 ? 1250 : 2100;
-    const palette = ["#f05b49", "#e9b65f", "#66c9bd", "#b69be8"];
-    const particles = targets.slice(0, maxParticles).map(target => {
-      const edge = Math.floor(Math.random() * 4);
-      let x = Math.random() * width, y = Math.random() * height;
-      if (edge === 0) x = -25 - Math.random() * width * 0.25;
-      if (edge === 1) x = width + 25 + Math.random() * width * 0.25;
-      if (edge === 2) y = -25 - Math.random() * height * 0.25;
-      if (edge === 3) y = height + 25 + Math.random() * height * 0.25;
-      return {
-        sx: x, sy: y, tx: target.x, ty: target.y,
-        delay: Math.random() * 0.34,
-        size: 0.65 + Math.random() * 1.05,
-        color: palette[Math.floor(Math.random() * palette.length)],
-        seed: Math.random() * Math.PI * 2
-      };
-    });
-
-    const started = performance.now(), gatherDuration = 5.1, fadeDuration = 4500;
-    const onResize = () => finish();
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      document.body.classList.remove("rebuild-running");
-      canvas.remove();
-      removeEventListener("resize", onResize);
-    };
-    addEventListener("resize", onResize, { once: true });
-
-    const draw = now => {
-      if (cancelled || finished) return;
-      const elapsed = (now - started) / 1000;
-      if (!revealing && elapsed >= gatherDuration) {
-        revealing = true;
-        revealStarted = now;
-        document.body.classList.remove("rebuild-running");
-      }
-      ctx.clearRect(0, 0, width, height);
-      const fade = revealing ? Math.max(0, 1 - (now - revealStarted) / fadeDuration) : 1;
-      for (const particle of particles) {
-        const progress = Math.max(0, Math.min(1, (elapsed - particle.delay) / (gatherDuration - particle.delay)));
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const drift = (1 - eased) * 7;
-        const x = particle.sx + (particle.tx - particle.sx) * eased + Math.sin(now * 0.0012 + particle.seed) * drift;
-        const y = particle.sy + (particle.ty - particle.sy) * eased + Math.cos(now * 0.0011 + particle.seed) * drift;
-        ctx.globalAlpha = fade * (0.42 + 0.58 * progress);
-        ctx.fillStyle = particle.color;
-        ctx.beginPath();
-        ctx.arc(x, y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      if (revealing && fade <= 0) {
-        finish();
-        return;
-      }
-      raf = requestAnimationFrame(draw);
-    };
-
-    if (!particles.length) {
-      finish();
-      return;
-    }
-    raf = requestAnimationFrame(draw);
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(raf);
-      document.body.classList.remove("rebuild-running");
-      canvas.remove();
-      removeEventListener("resize", onResize);
-    };
-  }, []);
-  return null;
-}
 function App() {
-  const [menu,setMenu]=useState(false),[motionOn,setMotionOn]=useState(true);
+  const [menu,setMenu]=React.useState(false);
   useEffect(()=>{const scroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty("--progress",max>0?scrollY/max*100+"%":"0%")};addEventListener("scroll",scroll,{passive:true});scroll();return()=>removeEventListener("scroll",scroll)},[]);
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Tools","#skills"],["06","Work","#work"]];
-  return <MotionContext.Provider value={motionOn}><>
-    <RebuildEffect />
+  return <>
     <div className="progress"/>
     <header className="header">
       <a className="brand" href="#top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu">☰</button>
-      <nav className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<button className="motion-button" onClick={()=>setMotionOn(v=>!v)} aria-pressed={motionOn}><i/> MOTION / {motionOn?"ON":"OFF"}</button><a className="nav-cta" href="#contact">Initiate contact ↗</a></nav>
+      <nav className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<a className="nav-cta" href="#contact">Initiate contact ↗</a></nav>
     </header>
     <main id="top">
       <section className="hero shell">
@@ -278,6 +94,6 @@ function App() {
       <section className="contact shell" id="contact"><Reveal><div className="section-label"><span>07 / DIRECT CONNECT</span><span>OPEN TO GOOD CONVERSATIONS</span></div><p className="gold-label">HAVE AN IDEA OR OPPORTUNITY?</p><h2>Let's build<br/><em>something real.</em></h2><div className="contact-foot"><div><p>For collaborations, opportunities or a thoughtful conversation, reach out directly.</p><div className="contact-details"><a href="mailto:ayushsinghrajput00@gmail.com">ayushsinghrajput00@gmail.com</a><a href="tel:+919354895707">+91 93548 95707</a></div></div><div className="contact-links"><a className="button" href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">Instagram ↗</a><a className="social-link" href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noreferrer">GitHub ↗</a></div></div></Reveal></section>
     </main>
     <footer className="footer shell"><a className="brand" href="#top">AS<span>_</span></a><span>© {new Date().getFullYear()} AYUSH SINGH / INDIA</span><a href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">INSTAGRAM ↗</a><a href="#top">BACK TO TOP ↑</a><small>BUILT WITH INTENTION.</small></footer>
-  </></MotionContext.Provider>;
+  </>;
 }
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);
