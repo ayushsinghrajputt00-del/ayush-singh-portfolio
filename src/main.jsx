@@ -3,17 +3,17 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 const focus = [
-  ["01", "Leadership & responsibility", "Learning to take initiative, work with people and stay accountable."],
-  ["02", "Technology & digital craft", "Building practical skills through web projects, tools and experimentation."],
-  ["03", "Discipline & endurance", "Developing consistency through study, physical training and new challenges."]
+  ["01", "Leadership & responsibility", "Practising clear communication, initiative and responsibility in team settings."],
+  ["02", "Technology & digital craft", "Learning frontend development and basic programming by building small projects."],
+  ["03", "Discipline & endurance", "Maintaining a regular study and training routine, then reviewing progress honestly."]
 ];
 const tools = [
   ["01", "React", "Component-based interface development"],
   ["02", "Vite", "Frontend development and production builds"],
-  ["03", "Framer Motion", "Accessible interface and scroll animations"],
-  ["04", "CSS", "Responsive layouts and visual styling"],
-  ["05", "GitHub", "Version control and project source management"],
-  ["06", "Vercel", "Deployment and production hosting"]
+  ["03", "JavaScript", "Core language used to build this interface"],
+  ["04", "Python", "Programming practice and small experiments"],
+  ["05", "CSS", "Responsive layouts and visual styling"],
+  ["06", "GitHub", "Version control and project source management"]
 ];
 const journey = [
   ["Curiosity", "Question the obvious", "Explore new ideas, understand how things work and keep learning."],
@@ -24,7 +24,6 @@ const journey = [
 function App() {
   const [menu,setMenu]=React.useState(false);
   const [formStatus,setFormStatus]=React.useState({type:"",message:""});
-  useEffect(()=>{const scroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty("--progress",max>0?scrollY/max*100+"%":"0%")};addEventListener("scroll",scroll,{passive:true});scroll();return()=>removeEventListener("scroll",scroll)},[]);
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Tools","#skills"],["06","Work","#work"]];
   const handleContactSubmit=(event)=>{
     event.preventDefault();
@@ -48,7 +47,6 @@ function App() {
     }
   };
   return <>
-    <div className="progress"/>
     <header className="header">
       <a className="brand" href="#top" aria-label="Ayush Singh, back to top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" type="button" onClick={()=>setMenu(v=>!v)} aria-label={menu?"Close navigation menu":"Open navigation menu"} aria-expanded={menu} aria-controls="primary-navigation">{menu?"✕":"☰"}</button>
@@ -56,12 +54,12 @@ function App() {
     </header>
     <main id="top">
       <section className="hero shell">
-        <div className="hero-topline"><span><i/> INDEPENDENT MIND / ACTIVE LEARNING</span><span>NEW DELHI, IN</span><span>28°36' N / 77°12' E</span></div>
+        <div className="hero-topline"><span><i/> INDEPENDENT MIND / ACTIVE LEARNING</span><span>NEW DELHI, IN</span><span>INDIA</span></div>
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="gold-label">STUDENT · CREATOR · CURIOUS MIND</p>
             <h1>AYUSH<span className="red-dot">.</span><br/><em>Singh</em></h1>
-            <p className="hero-desc">Exploring technology, creativity and new ideas. Learning by doing, staying curious and building things that feel meaningful.</p>
+            <p className="hero-desc">I am a BCA student at IGNOU learning web development and software fundamentals. I build small React and Python projects to practise coding, solve practical problems and improve through hands-on work.</p>
             <div className="hero-links"><a className="button" href="#about">Explore profile <span>↘</span></a><a className="under-link" href="#work">View selected work ↗</a></div>
           </div>
           <div className="hero-art">
@@ -70,13 +68,7 @@ function App() {
             <div className="art-stamp">AS<br/><small>IND / 26</small></div>
           </div>
         </div>
-        <div className="hero-bottom"><span>SCROLL TO EXPLORE ↓</span><span>DISCIPLINE / CURIOSITY / EXECUTION</span><span>PORTFOLIO INDEX 001—005</span></div>
-      </section>
-      <section className="metrics shell">
-        <div className="metric-card"><small>01 / BASE</small><strong>DELHI</strong><span>India · IST</span></div>
-        <div className="metric-card"><small>02 / MODE</small><strong>LEARNING</strong><span>Always in progress</span></div>
-        <div className="metric-card"><small>03 / PRINCIPLE</small><strong>DISCIPLINE</strong><span>Consistency over intensity</span></div>
-        <div className="metric-card"><small>04 / STATUS</small><strong><i/> ACTIVE</strong><span>Building the next chapter</span></div>
+        <div className="hero-bottom"><span>SCROLL TO EXPLORE ↓</span><span>DISCIPLINE / CURIOSITY / EXECUTION</span><span>PORTFOLIO INDEX 001-005</span></div>
       </section>
       <section className="section shell" id="about">
         <div className="section-label"><span>01 / PROFILE</span><span>BACKGROUND & PHILOSOPHY</span></div>
@@ -104,14 +96,14 @@ function App() {
         <div className="timeline">{journey.map(([t,s,d],i)=><article className="timeline-row"><span className="number">0{i+1}</span><div><h3>{t}</h3><p>{s}</p><small>{d}</small></div><b>↗</b></article>)}</div>
       </section>
       <section className="section shell" id="work">
-        <div className="section-label"><span>06 / SELECTED WORK</span><span>PROJECT ARCHIVE</span></div><div className="work-title"><h2 className="section-heading">Proof of <em>practice.</em></h2><span>01—03 / INDEX</span></div>
+        <div className="section-label"><span>06 / SELECTED WORK</span><span>PROJECT ARCHIVE</span></div><div className="work-title"><h2 className="section-heading">Proof of <em>practice.</em></h2><span>01-03 / INDEX</span></div>
         <div className="project-grid">
-          <article className="project-card"><div className="project-visual visual-one"><span>AS / 001</span><b>01</b><i>WEB</i></div><div className="project-meta"><small>PERSONAL PLATFORM / 2026</small><h3>Personal Portfolio</h3><p>A digital home for my story, interests, experiments and future work.</p><span>REACT · VITE · DESIGN</span></div></article>
+          <article className="project-card"><div className="project-visual visual-one"><span>AS / 001</span><b>01</b><i>WEB</i></div><div className="project-meta"><small>PERSONAL PLATFORM / 2026</small><h3>Personal Portfolio</h3><p>A responsive portfolio built with React and CSS to present my background and selected projects.</p><span>REACT · VITE · DESIGN</span></div></article>
           <article className="project-card"><div className="project-visual visual-two"><span>AS / 002</span><b>02</b><i>FITNESS</i></div><div className="project-meta"><small>PERSONAL PRACTICE / 2026</small><h3>Fitness</h3><p>Building strength, endurance and healthy habits through consistent training.</p><span>STRENGTH · ENDURANCE · WELLBEING</span></div></article>
-          <article className="project-card"><div className="project-visual visual-three"><span>AS / 003</span><b>03</b><i>EXPERIMENTS</i></div><div className="project-meta"><small>ONGOING / OPEN ENDED</small><h3>Digital Experiments</h3><p>Learning by making: testing tools, exploring ideas and improving through iteration.</p><span>RESEARCH · BUILD · ITERATE</span></div></article>
+          <article className="project-card"><div className="project-visual visual-three"><span>AS / 003</span><b>03</b><i>EXPERIMENTS</i></div><div className="project-meta"><small>ONGOING / OPEN ENDED</small><h3>Digital Experiments</h3><p>Small coding experiments used to practise Python, interface design and debugging.</p><span>RESEARCH · BUILD · ITERATE</span></div></article>
         </div>
       </section>
-      <section className="contact shell" id="contact"><div className="section-label"><span>07 / DIRECT CONNECT</span><span>OPEN TO GOOD CONVERSATIONS</span></div><p className="gold-label">HAVE AN IDEA OR OPPORTUNITY?</p><h2>Let's build<br/><em>something real.</em></h2><div className="contact-foot"><div><p>For collaborations, opportunities or a thoughtful conversation, reach out directly.</p><div className="contact-details"><a href="mailto:ayushsinghrajput00@gmail.com">ayushsinghrajput00@gmail.com</a><a href="tel:+919354895707">+91 93548 95707</a></div></div><div className="contact-links"><a className="button" href="https://www.instagram.com/iiuss__/" target="_blank" rel="noreferrer">Instagram ↗</a><a className="social-link" href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noreferrer">GitHub ↗</a></div></div>
+      <section className="contact shell" id="contact"><div className="section-label"><span>07 / DIRECT CONNECT</span><span>OPEN TO GOOD CONVERSATIONS</span></div><p className="gold-label">HAVE AN IDEA OR OPPORTUNITY?</p><h2>Have a project<br/><em>or question?</em></h2><div className="contact-foot"><div><p>Use the contact form to prepare an email, or contact me directly at the address below.</p><div className="contact-details"><a href="mailto:ayushsinghrajput00@gmail.com">ayushsinghrajput00@gmail.com</a><a href="tel:+919354895707">+91 93548 95707</a></div></div><div className="contact-links"><a className="button" href="https://www.instagram.com/iiuss__/" target="_blank" rel="noopener noreferrer">Instagram ↗</a><a className="social-link" href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></div>
       <form className="contact-form" onSubmit={handleContactSubmit} noValidate>
         <div className="form-heading"><span>DIRECT MESSAGE</span><small>YOUR EMAIL APP WILL HANDLE DELIVERY</small></div>
         <div className="form-grid">
@@ -122,7 +114,7 @@ function App() {
         <div className="form-actions"><button className="button" type="submit">Prepare email <span>↗</span></button><p className="form-status" role={formStatus.type==="error"?"alert":"status"} aria-live="polite" data-state={formStatus.type}>{formStatus.message}</p></div>
       </form></section>
     </main>
-    <footer className="footer shell"><a className="brand" href="#top">AS<span>_</span></a><span>© {new Date().getFullYear()} AYUSH SINGH / INDIA</span><a href="https://www.instagram.com/iiuss__/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><a href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noopener noreferrer">GITHUB ↗</a><a href="mailto:ayushsinghrajput00@gmail.com">EMAIL ↗</a><a href="tel:+919354895707">CALL ↗</a><a href="#top">BACK TO TOP ↑</a><small>BUILT WITH INTENTION.</small></footer>
+    <footer className="footer shell"><a className="brand" href="#top">AS<span>_</span></a><span>© {new Date().getFullYear()} AYUSH SINGH / INDIA</span><a href="https://www.instagram.com/iiuss__/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><a href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noopener noreferrer">GITHUB ↗</a><a href="mailto:ayushsinghrajput00@gmail.com">EMAIL ↗</a><a href="tel:+919354895707">CALL ↗</a><a href="/privacy.html">PRIVACY</a><a href="/terms.html">TERMS</a><a href="#top">BACK TO TOP ↑</a><small>BUILT WITH INTENTION.</small></footer>
   </>;
 }
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);
