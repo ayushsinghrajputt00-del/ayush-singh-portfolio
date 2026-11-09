@@ -33,13 +33,13 @@ function App() {
     const name=String(data.get("name")||"").trim();
     const email=String(data.get("email")||"").trim();
     const message=String(data.get("message")||"").trim();
-    if(!name||!email||!message||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+    if(!name||!email||!message||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
       setFormStatus({type:"error",message:"Please enter a valid name, email address and message."});
       return;
     }
     try{
       const subject=encodeURIComponent("Portfolio enquiry from "+name);
-      const body=encodeURIComponent("Name: "+name+"\\nEmail: "+email+"\\n\\n"+message);
+      const body=encodeURIComponent("Name: "+name+"\nEmail: "+email+"\n\n"+message);
       window.location.href="mailto:ayushsinghrajput00@gmail.com?subject="+subject+"&body="+body;
       setFormStatus({type:"success",message:"Your email app should open with the draft ready. Review it and press Send to finish."});
       form.reset();
