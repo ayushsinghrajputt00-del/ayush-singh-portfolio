@@ -18,3 +18,58 @@
 @media(max-width:680px){.skills-grid{grid-template-columns:1fr 1fr}.skill-card{min-height:125px;padding:15px 12px;grid-template-columns:20px 1fr 10px;gap:8px}.skill-card h3{font-size:16px}.skill-card p{font-size:9px}}
 
 
+
+/* Responsive, accessible finishing pass */
+html,body,#root{max-width:100%;overflow-x:clip}
+img,svg,video,canvas{max-width:100%}
+.shell{min-width:0}
+.hero-grid>*,.about-grid>*,.contact-foot>*,.footer>*{min-width:0}
+.hero h1{max-width:100%;overflow-wrap:anywhere}
+.header{gap:16px}
+.brand{flex-shrink:0}
+.nav{min-width:0}
+.menu-button{display:none;min-width:44px;min-height:44px;border:1px solid var(--line);background:transparent;border-radius:2px;cursor:pointer;font-size:20px;line-height:1}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.contact-form{max-width:760px;margin:44px 0 0 auto;padding:26px;border:1px solid var(--line);background:#0d0e0f}
+.form-heading,.form-actions{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.form-heading{padding-bottom:20px;border-bottom:1px solid var(--line);font:9px var(--mono);letter-spacing:1px;color:var(--gold)}
+.form-heading small{font-size:8px;color:var(--muted);text-align:right}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.contact-form label{display:grid;gap:8px;margin-top:18px;font:9px var(--mono);letter-spacing:.7px;color:#c9c4bb}
+.contact-form input,.contact-form textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:0;background:#090a0b;color:var(--paper);padding:13px;font:13px "DM Sans",sans-serif;letter-spacing:0}
+.contact-form textarea{resize:vertical;min-height:120px}
+.form-actions{align-items:flex-start;margin-top:20px}
+.form-actions .button{border:0;cursor:pointer}
+.form-status{margin:10px 0 0;font-size:11px;line-height:1.6;color:var(--muted)}
+.form-status[data-state="success"]{color:#8fbea0}
+.form-status[data-state="error"]{color:#e58b7f}
+@media(max-width:900px){.header{padding-inline:30px}.nav{gap:12px}.nav>a{font-size:9px}}
+@media(max-width:680px){
+  html{scroll-padding-top:72px}
+  .header{height:68px;padding-inline:20px}
+  .menu-button{display:block}
+  .nav{display:none;position:absolute;top:67px;left:0;right:0;z-index:25;padding:22px 20px 28px;background:#101112;border-bottom:1px solid var(--line);align-items:stretch;flex-direction:column;gap:20px;max-height:calc(100dvh - 68px);overflow-y:auto}
+  .nav.open{display:flex}
+  .nav>a{font-size:11px}
+  .nav-cta{align-self:flex-start}
+  .hero h1{font-size:clamp(3.7rem,16vw,7.2rem);letter-spacing:-.055em;white-space:normal}
+  .hero h1 em{letter-spacing:-.05em}
+  .hero-links{flex-wrap:wrap;gap:16px}
+  .hero-topline span:nth-child(2){margin-left:auto}
+  .footer{grid-template-columns:1fr 1fr;gap:14px}
+  .footer>*{overflow-wrap:anywhere}
+  .contact-form{padding:18px;margin-top:32px}
+  .form-grid{grid-template-columns:1fr;gap:0}
+  .form-heading,.form-actions{align-items:flex-start;flex-direction:column}
+  .form-heading small{text-align:left}
+  .form-status{margin-top:0}
+}
+@media(max-width:360px){
+  .shell{width:calc(100% - 32px)}
+  .header{padding-inline:16px}
+  .hero h1{font-size:clamp(3.35rem,15vw,3.7rem)}
+  .hero-topline{flex-wrap:wrap}
+  .hero-bottom span:nth-child(2){display:none}
+  .metrics{grid-template-columns:1fr 1fr}
+  .footer{font-size:7px}
+}
