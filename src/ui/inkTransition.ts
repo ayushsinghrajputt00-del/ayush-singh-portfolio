@@ -86,6 +86,9 @@ export class InkTransition {
     // Snapshots are skipped under reduced motion; take them if the preference is lifted.
     reducedMotion.addEventListener('change', () => this.scheduleCapture(0));
 
+    // Start both theme snapshots immediately; fonts.ready schedules a clean refresh
+    // after web fonts settle. This avoids the first reverse toggle hitting an empty texture.
+    this.scheduleCapture(0);
     void document.fonts.ready.then(() => this.scheduleCapture(0));
   }
 
