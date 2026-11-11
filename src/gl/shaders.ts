@@ -166,31 +166,33 @@ void main() {
   float reach = clamp(1.0 + A_LOBE * 1.6 * lobes + A_BLOB * 1.5 * blob, 1.0 - A_SUM, 1.0 + A_SUM);
   float f = d - R * reach;
 
-  // Tendrils: thin filaments along the zero-lines of an fbm sampled on the direction
-  // circle. The distance term shifts the lines sideways as they extend (curl), the warp
-  // bends them, and the fbm octaves make them fork. Each filament has a length (varying
-  // per direction) and a width that tapers to a point at the tip.
-  float gate = smoothstep(-0.35, 0.4, fbm3(dir * 1.6 + uSeed * 0.61 + 3.7));
-  vec2 tq = dir * (2.2 * ns) + (d / uRef) * vec2(2.6, -1.9) * ns + 1.2 * w + uSeed * 1.7 + vec2(0.0, 0.18 * t);
-  float n = fbm4(tq);
-  float ridgePx = abs(n) * max(d, 24.0) / (4.0 * ns); // ~px distance to the filament's spine
-  float lenN = gnoise(dir * 3.1 + uSeed * 0.43 + vec2(0.1 * t)) * 0.5 + 0.5;
-  float L = uTendril * TENDRIL_REACH * R * gate * (0.35 + 0.65 * lenN);
-  float along = clamp(f / max(L, 1.0), 0.0, 1.0); // 0 at the blob edge, 1 at the tip
-  float width = clamp(R * 0.022, 1.5, 9.0) * (1.0 - along * along) * gate;
-  float ft = max(f - L, ridgePx - width);
-  // Smooth union: filaments flare into the blob instead of meeting it at a crease.
-  float k = 6.0;
-  float hh = clamp(0.5 + 0.5 * (ft - f) / k, 0.0, 1.0);
-  f = mix(ft, f, hh) - k * hh * (1.0 - hh);
+  // Tendrils and paper fibres belong to the outward ink-spread only.
+  // Reusing them for retraction creates detached islands and ragged holes in the
+  // shrinking dark pool, especially on high-DPR mobile screens.
+  if (uRetract == 0) {
+    // Tendrils: thin filaments along the zero-lines of an fbm sampled on the direction
+    // circle. The distance term shifts the lines sideways as they extend (curl), the warp
+    // bends them, and the fbm octaves make them fork.
+    float gate = smoothstep(-0.35, 0.4, fbm3(dir * 1.6 + uSeed * 0.61 + 3.7));
+    vec2 tq = dir * (2.2 * ns) + (d / uRef) * vec2(2.6, -1.9) * ns + 1.2 * w + uSeed * 1.7 + vec2(0.0, 0.18 * t);
+    float n = fbm4(tq);
+    float ridgePx = abs(n) * max(d, 24.0) / (4.0 * ns);
+    float lenN = gnoise(dir * 3.1 + uSeed * 0.43 + vec2(0.1 * t)) * 0.5 + 0.5;
+    float L = uTendril * TENDRIL_REACH * R * gate * (0.35 + 0.65 * lenN);
+    float along = clamp(f / max(L, 1.0), 0.0, 1.0);
+    float width = clamp(R * 0.022, 1.5, 9.0) * (1.0 - along * along) * gate;
+    float ft = max(f - L, ridgePx - width);
+    float k = 6.0;
+    float hh = clamp(0.5 + 0.5 * (ft - f) / k, 0.0, 1.0);
+    f = mix(ft, f, hh) - k * hh * (1.0 - hh);
 
-  // Paper fibres: static in screen space so they don't shimmer.
-  vec2 fq = css * 0.34 + uSeed * 13.0;
-  float fibre = gnoise2(fq) * 0.65 + gnoise2(OCT * fq + 5.3) * 0.35; // rotated octave hides the 32-unit tile
-  f += fibre * FIBRE_PX;
+    // Paper fibres soften only the outward ink frontier.
+    vec2 fq = css * 0.34 + uSeed * 13.0;
+    float fibre = gnoise2(fq) * 0.65 + gnoise2(OCT * fq + 5.3) * 0.35;
+    f += fibre * FIBRE_PX;
+  }
 
-  f -= cleanup;
-
+  float fibre = 0.0;
   // ---------- compositing ----------
   float soft = max(uSoftness, 0.6);
   float inked = 1.0 - smoothstep(-soft, soft, f);
