@@ -48,8 +48,10 @@ function App() {
     try{localStorage.setItem("ayush-portfolio-theme",theme);}catch{}
   },[theme]);
   const toggleTheme=(event)=>{
-    // Read the live DOM theme: InkTransition flips it synchronously, while React state
-    // may still be one render behind during rapid taps or an interrupted animation.
+    // Keep React state and the live DOM in lockstep. InkTransition deliberately
+    // rejects taps while a transition is active; do not update React/localStorage
+    // for a tap that it will not accept.
+    if(inkRef.current?.isAnimating) return;
     const current=document.documentElement.dataset.theme==="light"?"light":"dark";
     const next=current==="dark"?"light":"dark";
     const point={x:event?.clientX??window.innerWidth/2,y:event?.clientY??window.innerHeight/2};
