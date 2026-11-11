@@ -73,8 +73,36 @@ export async function capturePage(theme: Theme, scale: number, maxTextureSize: n
     useCORS: true,
     onclone: (doc) => {
       doc.documentElement.dataset.theme = theme;
-      // The live toggle is drawn above the overlay, so leave a hole for it. `visibility`
-      // (not data-html2canvas-ignore) keeps its box in the layout so the nav doesn't shift.
+      // The portfolio uses color-mix() in a few decorative backgrounds. Pin those
+      // backgrounds to equivalent solid theme colours in the snapshot clone so
+      // html2canvas can rasterise the page consistently on mobile browsers.
+      const light = theme === 'light';
+      const root = doc.documentElement;
+      const bg = light ? '#f2efe8' : '#090a0b';
+      const paper = light ? '#20201e' : '#eeeae3';
+      const gold = light ? '#79521f' : '#c9aa75';
+      const red = light ? '#a9473b' : '#c45b4d';
+      doc.body.style.backgroundColor = bg;
+      doc.querySelectorAll<HTMLElement>('.header').forEach((el) => { el.style.backgroundColor = bg; });
+      doc.querySelectorAll<HTMLElement>('.project-card,.contact-form').forEach((el) => {
+        el.style.backgroundColor = light ? '#e7e3da' : '#0d0e0f';
+      });
+      doc.querySelectorAll<HTMLElement>('.project-visual').forEach((el) => {
+        el.style.backgroundColor = light ? '#e3dfd6' : '#151515';
+      });
+      doc.querySelectorAll<HTMLElement>('.visual-two').forEach((el) => {
+        el.style.backgroundImage = 'none';
+        el.style.backgroundColor = light ? '#e7dfd0' : '#211d18';
+      });
+      doc.querySelectorAll<HTMLElement>('.visual-three').forEach((el) => {
+        el.style.backgroundImage = 'none';
+        el.style.backgroundColor = light ? '#e8ddda' : '#201a1a';
+      });
+      doc.querySelectorAll<HTMLElement>('.skill-card').forEach((el) => {
+        el.style.backgroundImage = 'none';
+        el.style.backgroundColor = light ? '#e4e0d7' : '#111213';
+      });
+      // Keep the live toggle above the overlay, but omit its duplicate in snapshots.
       doc.querySelectorAll<HTMLElement>('[data-ink-live]').forEach((el) => {
         el.style.visibility = 'hidden';
       });
