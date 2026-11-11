@@ -23,7 +23,24 @@ const journey = [
 
 function App() {
   const [menu,setMenu]=React.useState(false);
+  const [theme,setTheme]=React.useState(()=>document.documentElement.dataset.theme==="light"?"light":"dark");
   const [formStatus,setFormStatus]=React.useState({type:"",message:""});
+  useEffect(()=>{
+    document.documentElement.dataset.theme=theme;
+    try{localStorage.setItem("ayush-portfolio-theme",theme);}catch{}
+  },[theme]);
+  const toggleTheme=(event)=>{
+    const next=theme==="dark"?"light":"dark";
+    const x=event?.clientX??window.innerWidth/2;
+    const y=event?.clientY??40;
+    document.documentElement.style.setProperty("--theme-x",x+"px");
+    document.documentElement.style.setProperty("--theme-y",y+"px");
+    if(document.startViewTransition){
+      document.startViewTransition(()=>setTheme(next));
+    }else{
+      setTheme(next);
+    }
+  };
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Tools","#skills"],["06","Work","#work"]];
   const handleContactSubmit=(event)=>{
     event.preventDefault();
@@ -50,7 +67,7 @@ function App() {
     <header className="header">
       <a className="brand" href="#top" aria-label="Ayush Singh, back to top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" type="button" onClick={()=>setMenu(v=>!v)} aria-label={menu?"Close navigation menu":"Open navigation menu"} aria-expanded={menu} aria-controls="primary-navigation">{menu?"✕":"☰"}</button>
-      <nav id="primary-navigation" aria-label="Main navigation" className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<a className="nav-cta" href="#contact" onClick={()=>setMenu(false)}>Initiate contact ↗</a></nav>
+      <nav id="primary-navigation" aria-label="Main navigation" className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<a className="nav-cta" href="#contact" onClick={()=>setMenu(false)}>Initiate contact ↗</a><button className="theme-toggle" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme==="dark"?"light":"dark"} mode`} title={`Switch to ${theme==="dark"?"light":"dark"} mode`}><span aria-hidden="true">{theme==="dark"?"☼":"☾"}</span><small>{theme==="dark"?"LIGHT":"DARK"}</small></button></nav>
     </header>
     <main id="top">
       <section className="hero shell">
