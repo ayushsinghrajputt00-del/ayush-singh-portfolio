@@ -110,6 +110,11 @@ export class InkTransition {
    * `seed` reproduces a previous spread exactly.
    */
   toggle(point?: Point, seed?: InkFrame['seed']): void {
+    // Do not interrupt an in-flight liquid transition. Rapid taps can otherwise
+    // freeze a partially rendered composite and use it as the next source texture.
+    // The live theme is already updated at transition start, so ignored taps must
+    // not mutate it or queue a second transition.
+    if (this.frame || document.documentElement.classList.contains('theme-fade')) return;
     window.clearTimeout(this.replayTimer);
     // The live DOM always holds the latest target, so this is right even mid-transition.
     const to = otherTheme(getTheme());
