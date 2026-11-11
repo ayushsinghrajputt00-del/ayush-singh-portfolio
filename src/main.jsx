@@ -64,6 +64,7 @@ function App() {
     }
   };
   return <>
+    <svg className="theme-filter-defs" aria-hidden="true" focusable="false"><filter id="ink-edge" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.045" numOctaves="2" seed="8" result="noise"><animate attributeName="baseFrequency" values="0.012 0.045;0.018 0.06;0.012 0.045" dur="1.1s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="noise" scale="42" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
     <header className="header">
       <a className="brand" href="#top" aria-label="Ayush Singh, back to top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" type="button" onClick={()=>setMenu(v=>!v)} aria-label={menu?"Close navigation menu":"Open navigation menu"} aria-expanded={menu} aria-controls="primary-navigation">{menu?"✕":"☰"}</button>
