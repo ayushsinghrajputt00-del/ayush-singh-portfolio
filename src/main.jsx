@@ -149,7 +149,7 @@ function App() {
       </form></section>
     </main>
     <footer className="footer shell"><a className="brand" href="#top">AS<span>_</span></a><span>© {new Date().getFullYear()} AYUSH SINGH / INDIA</span><a href="https://www.instagram.com/iiuss__/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><a href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noopener noreferrer">GITHUB ↗</a><a href="mailto:ayushsinghrajput00@gmail.com">EMAIL ↗</a><a href="tel:+919354895707">CALL ↗</a><a href="/privacy.html">PRIVACY</a><a href="/terms.html">TERMS</a><a href="#top">BACK TO TOP ↑</a><small>BUILT WITH INTENTION.</small></footer>
-    {cookieVisible&&<aside className="cookie-banner" role="dialog" aria-label="Cookie preferences" aria-describedby="cookie-description">
+    {cookieVisible&&<aside className="cookie-banner" data-html2canvas-ignore="true" role="dialog" aria-label="Cookie preferences" aria-describedby="cookie-description">
       <div className="cookie-copy"><h2>Before you continue</h2><p id="cookie-description">This website stores your selected theme and cookie preference in your browser. It does not currently use analytics or advertising cookies. You can choose whether to allow optional cookies if they are introduced later.</p></div>
       {cookieDetails&&<div className="cookie-details">
         <div><strong>Necessary storage</strong><span>Always active. Remembers your theme and cookie choice.</span><em>Always active</em></div>
