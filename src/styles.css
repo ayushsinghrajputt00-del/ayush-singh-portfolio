@@ -162,46 +162,28 @@ body{background:var(--bg);color:var(--paper)}
   body,.header,.nav,.project-card,.project-visual,.skill-card,.contact-form,.contact-form input,.contact-form textarea{transition:none}
 }
 
-/* Organic ink-splash theme reveal, inspired by the supplied reference */
+
+/* Ink-spread transition: a turbulent edge sweeps in from the left */
+.theme-filter-defs{
+  position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;
+}
+::view-transition-group(root){animation-duration:1.05s}
 ::view-transition-old(root){
-  animation:theme-old .18s ease both;
+  animation:ink-old .26s ease-out both;
 }
 ::view-transition-new(root){
-  animation:ink-splash-reveal .95s cubic-bezier(.2,.72,.18,1) both;
-  z-index:2;
+  animation:ink-spread 1.05s cubic-bezier(.58,.02,.18,1) both;
+  filter:url(#ink-edge);
+  transform-origin:left center;
 }
-@keyframes ink-splash-reveal{
-  0%{
-    clip-path:polygon(
-      0 0, 0 0, 0 5%, 0 10%, 0 15%, 0 20%, 0 25%, 0 30%,
-      0 35%, 0 40%, 0 45%, 0 50%, 0 55%, 0 60%, 0 65%,
-      0 70%, 0 75%, 0 80%, 0 85%, 0 90%, 0 95%, 0 100%, 0 100%
-    );
-  }
-  28%{
-    clip-path:polygon(
-      0 0, 28% 0, 25% 5%, 31% 10%, 23% 15%, 29% 20%, 21% 25%,
-      33% 30%, 24% 35%, 31% 40%, 20% 45%, 28% 50%, 22% 55%,
-      32% 60%, 23% 65%, 30% 70%, 20% 75%, 27% 80%, 22% 85%,
-      31% 90%, 24% 95%, 29% 100%, 0 100%
-    );
-  }
-  62%{
-    clip-path:polygon(
-      0 0, 72% 0, 67% 5%, 76% 10%, 65% 15%, 73% 20%, 63% 25%,
-      78% 30%, 66% 35%, 75% 40%, 64% 45%, 72% 50%, 66% 55%,
-      77% 60%, 65% 65%, 74% 70%, 63% 75%, 72% 80%, 66% 85%,
-      76% 90%, 67% 95%, 74% 100%, 0 100%
-    );
-  }
-  100%{
-    clip-path:polygon(
-      0 0, 110% 0, 106% 5%, 112% 10%, 104% 15%, 111% 20%, 103% 25%,
-      113% 30%, 105% 35%, 112% 40%, 103% 45%, 110% 50%, 104% 55%,
-      113% 60%, 103% 65%, 111% 70%, 102% 75%, 110% 80%, 104% 85%,
-      112% 90%, 105% 95%, 110% 100%, 0 100%
-    );
-  }
+@keyframes ink-spread{
+  0%{clip-path:inset(0 100% 0 0);filter:url(#ink-edge)}
+  38%{clip-path:inset(0 57% 0 0);filter:url(#ink-edge)}
+  72%{clip-path:inset(0 18% 0 0);filter:url(#ink-edge)}
+  100%{clip-path:inset(0 0 0 0);filter:none}
+}
+@keyframes ink-old{
+  to{opacity:.94}
 }
 @media(prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
