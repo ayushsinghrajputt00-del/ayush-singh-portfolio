@@ -202,12 +202,16 @@ export class InkTransition {
     const { progress, time } = this.state;
     const { maxDist } = this.frame;
     const linear = Math.min(1, time / inkParams.duration);
+    const retract = this.frame.to === 'light';
     const ramp = Math.max(0, (linear - SPREAD.cleanupFrom) / (1 - SPREAD.cleanupFrom));
     // Second term only acts in the last ~3% (≈40ms): a guarantee for unlucky seeds so the
     // final frame is exactly the "to" snapshot before the fade (measured residual is 0).
-    const cleanup =
+    const cleanup = retract ? 0 :
       ramp ** SPREAD.cleanupPow * maxDist * SPREAD.cleanupReach + Math.max(0, (linear - 0.97) / 0.03) * maxDist;
-    return { ...this.frame, progress, time, radius: progress * maxDist * SPREAD.growth, cleanup };
+    // Dark-to-light: keep the black surface as a shrinking liquid pool around the toggle.
+    // Light-to-dark retains the original outward ink spread unchanged.
+    const radius = retract ? (1 - progress) * maxDist * 1.8 : progress * maxDist * SPREAD.growth;
+    return { ...this.frame, progress, time, radius, cleanup };
   }
 
   private draw(): void {
