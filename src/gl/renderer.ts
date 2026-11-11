@@ -286,6 +286,7 @@ export class InkRenderer {
     gl.uniform2f(uniform('uCenter'), frame.center.x, frame.center.y);
     gl.uniform1f(uniform('uRadius'), frame.radius);
     gl.uniform1f(uniform('uCleanup'), frame.cleanup);
+    gl.uniform1i(uniform('uRetract'), frame.to === 'light' ? 1 : 0);
     gl.uniform1f(uniform('uTime'), frame.time);
     gl.uniform1f(uniform('uRef'), Math.max(this.canvas.width, this.canvas.height) / this.canvasScale);
     gl.uniform2f(uniform('uSeed'), frame.seed.x, frame.seed.y);
