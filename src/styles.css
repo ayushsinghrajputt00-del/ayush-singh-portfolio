@@ -163,28 +163,21 @@ body{background:var(--bg);color:var(--paper)}
 }
 
 
-/* Ink-spread transition: a turbulent edge sweeps in from the left */
-.theme-filter-defs{
-  position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;
-}
-::view-transition-group(root){animation-duration:1.05s}
-::view-transition-old(root){
-  animation:ink-old .26s ease-out both;
-}
+/* Organic liquid reveal for the theme switch */
+.theme-filter-defs{position:absolute;width:1px;height:1px;overflow:hidden;pointer-events:none}
+::view-transition-group(root){animation-duration:.95s}
+::view-transition-old(root){animation:theme-old .22s ease-out both}
 ::view-transition-new(root){
-  animation:ink-spread 1.05s cubic-bezier(.58,.02,.18,1) both;
-  filter:url(#ink-edge);
+  animation:liquid-reveal .95s cubic-bezier(.2,.72,.18,1) both;
   transform-origin:left center;
 }
-@keyframes ink-spread{
-  0%{clip-path:inset(0 100% 0 0);filter:url(#ink-edge)}
-  38%{clip-path:inset(0 57% 0 0);filter:url(#ink-edge)}
-  72%{clip-path:inset(0 18% 0 0);filter:url(#ink-edge)}
-  100%{clip-path:inset(0 0 0 0);filter:none}
+@keyframes liquid-reveal{
+  0%{clip-path:ellipse(0% 0% at 0% 50%);filter:blur(5px)}
+  32%{clip-path:ellipse(58% 105% at 0% 50%);filter:blur(2px)}
+  68%{clip-path:ellipse(118% 145% at 0% 50%);filter:blur(.5px)}
+  100%{clip-path:ellipse(180% 160% at 0% 50%);filter:none}
 }
-@keyframes ink-old{
-  to{opacity:.94}
-}
+@keyframes theme-old{to{opacity:.78}}
 @media(prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
 }
