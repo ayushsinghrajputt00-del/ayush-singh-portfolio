@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
+import { InkTransition } from "./ui/inkTransition";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -23,6 +24,8 @@ const journey = [
 
 function App() {
   const [menu,setMenu]=React.useState(false);
+  const inkRef=useRef(null);
+  const toggleRef=useRef(null);
   const [theme,setTheme]=React.useState(()=>document.documentElement.dataset.theme==="light"?"light":"dark");
   const [formStatus,setFormStatus]=React.useState({type:"",message:""});
   const [cookieVisible,setCookieVisible]=React.useState(()=>{try{return !localStorage.getItem("ayush-cookie-choice");}catch{return true;}});
@@ -31,20 +34,25 @@ function App() {
   const saveCookieChoice=(allowOptional)=>{try{localStorage.setItem("ayush-cookie-choice",JSON.stringify({necessary:true,optional:allowOptional,updatedAt:new Date().toISOString()}));}catch{}setCookieVisible(false);};
 
   useEffect(()=>{
+    const canvas=document.createElement("canvas");
+    canvas.className="ink-canvas";
+    canvas.setAttribute("aria-hidden","true");
+    canvas.setAttribute("data-html2canvas-ignore","");
+    document.body.append(canvas);
+    const ink=new InkTransition(canvas,toggleRef.current);
+    inkRef.current=ink;
+    return ()=>{inkRef.current=null;canvas.remove();};
+  },[]);
+  useEffect(()=>{
     document.documentElement.dataset.theme=theme;
     try{localStorage.setItem("ayush-portfolio-theme",theme);}catch{}
   },[theme]);
   const toggleTheme=(event)=>{
     const next=theme==="dark"?"light":"dark";
-    const x=event?.clientX??window.innerWidth/2;
-    const y=event?.clientY??40;
-    document.documentElement.style.setProperty("--theme-x",x+"px");
-    document.documentElement.style.setProperty("--theme-y",y+"px");
-    if(document.startViewTransition){
-      document.startViewTransition(()=>setTheme(next));
-    }else{
-      setTheme(next);
-    }
+    const point={x:event?.clientX??window.innerWidth/2,y:event?.clientY??window.innerHeight/2};
+    if(inkRef.current){inkRef.current.toggle(point);}
+    else{document.documentElement.dataset.theme=next;}
+    setTheme(next);
   };
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Tools","#skills"],["06","Work","#work"]];
   const handleContactSubmit=(event)=>{
@@ -69,11 +77,10 @@ function App() {
     }
   };
   return <>
-    <svg className="theme-filter-defs" aria-hidden="true" focusable="false"><filter id="ink-edge" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.045" numOctaves="2" seed="8" result="noise"><animate attributeName="baseFrequency" values="0.012 0.045;0.018 0.06;0.012 0.045" dur="1.1s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="noise" scale="42" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
     <header className="header">
       <a className="brand" href="#top" aria-label="Ayush Singh, back to top">AS<span>_</span><small>PERSONAL PORTFOLIO / 2026</small></a>
       <button className="menu-button" type="button" onClick={()=>setMenu(v=>!v)} aria-label={menu?"Close navigation menu":"Open navigation menu"} aria-expanded={menu} aria-controls="primary-navigation">{menu?"✕":"☰"}</button>
-      <nav id="primary-navigation" aria-label="Main navigation" className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<a className="nav-cta" href="#contact" onClick={()=>setMenu(false)}>Initiate contact ↗</a><button className="theme-toggle" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme==="dark"?"light":"dark"} mode`} title={`Switch to ${theme==="dark"?"light":"dark"} mode`}><span aria-hidden="true">{theme==="dark"?"☼":"☾"}</span><small>{theme==="dark"?"LIGHT":"DARK"}</small></button></nav>
+      <nav id="primary-navigation" aria-label="Main navigation" className={menu?"nav open":"nav"}>{links.map(([n,t,h])=><a key={h} href={h} onClick={()=>setMenu(false)}><small>{n}</small>{t}</a>)}<a className="nav-cta" href="#contact" onClick={()=>setMenu(false)}>Initiate contact ↗</a><button ref={toggleRef} data-ink-live className="theme-toggle" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme==="dark"?"light":"dark"} mode`} title={`Switch to ${theme==="dark"?"light":"dark"} mode`}><span aria-hidden="true">{theme==="dark"?"☼":"☾"}</span><small>{theme==="dark"?"LIGHT":"DARK"}</small></button></nav>
     </header>
     <main id="top">
       <section className="hero shell">
