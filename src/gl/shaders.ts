@@ -130,11 +130,19 @@ void main() {
   float inner = R * (1.0 - A_SUM) + cleanup - FIBRE_PX - THIN_MAX_PX - uSoftness * 2.0;
   float outer = R * (1.0 + A_SUM) * (1.0 + TENDRIL_REACH * uTendril) + cleanup + FIBRE_PX + SPECK_PX + uSoftness * 2.0;
   if (d < inner) {
-    outColor = vec4(sampleDoc(uRetract == 1 ? uFrom : uTo, uRetract == 1 ? uFromSize : uToSize, uRetract == 1 ? uFromMap : uToMap, devPx), 1.0);
+    if (uRetract == 1) {
+      outColor = vec4(sampleDoc(uFrom, uFromSize, uFromMap, devPx), 1.0);
+    } else {
+      outColor = vec4(sampleDoc(uTo, uToSize, uToMap, devPx), 1.0);
+    }
     return;
   }
   if (d > outer) {
-    outColor = vec4(sampleDoc(uRetract == 1 ? uTo : uFrom, uRetract == 1 ? uToSize : uFromSize, uRetract == 1 ? uToMap : uFromMap, devPx), 1.0);
+    if (uRetract == 1) {
+      outColor = vec4(sampleDoc(uTo, uToSize, uToMap, devPx), 1.0);
+    } else {
+      outColor = vec4(sampleDoc(uFrom, uFromSize, uFromMap, devPx), 1.0);
+    }
     return;
   }
 
