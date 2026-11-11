@@ -237,3 +237,43 @@ body{background:var(--bg);color:var(--paper)}
 :root[data-theme="light"] .hero-topline i{
   box-shadow:none;
 }
+
+
+/* Contact form: readable labels and controls in light mode */
+:root[data-theme="light"] .contact-form{
+  background:#e7e3da;
+  border-color:#aaa398;
+}
+:root[data-theme="light"] .form-heading{
+  color:#684719;
+  font-weight:600;
+}
+:root[data-theme="light"] .form-heading small{
+  color:#514c44;
+  font-weight:500;
+}
+:root[data-theme="light"] .contact-form label{
+  color:#393630;
+  font-size:10px;
+  font-weight:600;
+}
+:root[data-theme="light"] .contact-form input,
+:root[data-theme="light"] .contact-form textarea{
+  background:#faf8f3;
+  color:#20201e;
+  border-color:#aaa398;
+  font-weight:500;
+}
+:root[data-theme="light"] .contact-form input::placeholder,
+:root[data-theme="light"] .contact-form textarea::placeholder{
+  color:#69645c;
+  opacity:1;
+}
+:root[data-theme="light"] .contact-form input:focus,
+:root[data-theme="light"] .contact-form textarea:focus{
+  border-color:#79521f;
+  outline-color:#79521f;
+}
+:root[data-theme="light"] .form-status{
+  color:#514c44;
+}
