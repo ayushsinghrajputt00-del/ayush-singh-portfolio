@@ -43,6 +43,7 @@ uniform vec2 uRes;          // canvas device px
 uniform vec2 uCenter;       // CSS px, viewport-relative
 uniform float uRadius;      // CSS px, eased base radius
 uniform float uCleanup;     // CSS px, extra uniform reach that guarantees full coverage at the end
+uniform int uRetract;       // 1 = retract the dark surface toward the toggle; 0 = spread ink outward
 uniform float uTime;        // seconds since click (scaled by slow-mo)
 uniform float uRef;         // CSS px, noise reference length (max viewport side)
 uniform vec2 uSeed;
@@ -120,16 +121,20 @@ void main() {
   float d = length(rel);
   float R = uRadius;
   float cleanup = uCleanup;
+  if (uRetract == 1 && R < 0.01) {
+    outColor = vec4(sampleDoc(uTo, uToSize, uToMap, devPx), 1.0);
+    return;
+  }
 
   // Conservative bounds on f: skip the noise entirely far from the frontier.
   float inner = R * (1.0 - A_SUM) + cleanup - FIBRE_PX - THIN_MAX_PX - uSoftness * 2.0;
   float outer = R * (1.0 + A_SUM) * (1.0 + TENDRIL_REACH * uTendril) + cleanup + FIBRE_PX + SPECK_PX + uSoftness * 2.0;
   if (d < inner) {
-    outColor = vec4(sampleDoc(uTo, uToSize, uToMap, devPx), 1.0);
+    outColor = vec4(sampleDoc(uRetract == 1 ? uFrom : uTo, uRetract == 1 ? uFromSize : uToSize, uRetract == 1 ? uFromMap : uToMap, devPx), 1.0);
     return;
   }
   if (d > outer) {
-    outColor = vec4(sampleDoc(uFrom, uFromSize, uFromMap, devPx), 1.0);
+    outColor = vec4(sampleDoc(uRetract == 1 ? uTo : uFrom, uRetract == 1 ? uToSize : uFromSize, uRetract == 1 ? uToMap : uFromMap, devPx), 1.0);
     return;
   }
 
@@ -186,17 +191,17 @@ void main() {
   // the blob noise so the band never reads as a uniform outline.
   float thinW = mix(3.0, THIN_MAX_PX, clamp(blob * 0.8 + 0.3, 0.0, 1.0));
   float density = mix(0.6, 1.0, smoothstep(0.0, thinW, -f));
-  float cov = inked * density;
+  float cov = uRetract == 1 ? (1.0 - inked) : (inked * density);
 
   // Diffusion haze: a faint translucent gradient just ahead of the hard frontier, patchy
   // (driven by the fibre noise) so it reads as pigment bleeding into wet paper.
   float hazeW = mix(4.0, HAZE_PX, clamp(0.5 + 0.5 * blob, 0.0, 1.0));
   float haze = (1.0 - smoothstep(0.0, hazeW, f)) * smoothstep(-0.3, 0.6, 0.35 * fibre + w.x);
-  cov = max(cov, haze * 0.24 * step(0.0, f));
+  if (uRetract == 0) cov = max(cov, haze * 0.24 * step(0.0, f));
 
   // Speckles: isolated droplets just ahead of the frontier, rarer with distance.
   float ahead = clamp(f / SPECK_PX, 0.0, 1.0);
-  if (f > 0.0 && ahead < 1.0) {
+  if (uRetract == 0 && f > 0.0 && ahead < 1.0) {
     float sn = gnoise2(css * 0.55 + uSeed * 7.0 + 41.0) * 0.5 + 0.5;
     float th = mix(0.80, 0.96, ahead);
     cov = max(cov, smoothstep(th, th + 0.04, sn) * 0.75 * (1.0 - ahead));
@@ -208,7 +213,7 @@ void main() {
 
   // Pigment rim pooled at the frontier (darker for ink, brighter for bleach).
   float rimX = (f + soft * 1.1) / (soft * 1.4 + 1.2);
-  float rim = exp(-rimX * rimX) * inked;
+  float rim = exp(-rimX * rimX) * (uRetract == 1 ? (1.0 - inked) : inked);
   col = mix(col, uRimColor, rim * 0.45);
 
   outColor = vec4(col, 1.0);
