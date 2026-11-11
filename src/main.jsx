@@ -48,7 +48,10 @@ function App() {
     try{localStorage.setItem("ayush-portfolio-theme",theme);}catch{}
   },[theme]);
   const toggleTheme=(event)=>{
-    const next=theme==="dark"?"light":"dark";
+    // Read the live DOM theme: InkTransition flips it synchronously, while React state
+    // may still be one render behind during rapid taps or an interrupted animation.
+    const current=document.documentElement.dataset.theme==="light"?"light":"dark";
+    const next=current==="dark"?"light":"dark";
     const point={x:event?.clientX??window.innerWidth/2,y:event?.clientY??window.innerHeight/2};
     if(inkRef.current){inkRef.current.toggle(point);}
     else{document.documentElement.dataset.theme=next;}
