@@ -121,16 +121,8 @@ void main() {
   float d = length(rel);
   float R = uRadius;
   float cleanup = uCleanup;
-
-  // Retraction is deliberately a clean, continuous pool. The outward transition
-  // keeps its organic noise, but noise on a shrinking boundary creates detached
-  // dark islands and flicker on mobile.
-  if (uRetract == 1) {
-    vec3 from = sampleDoc(uFrom, uFromSize, uFromMap, devPx);
-    vec3 to = sampleDoc(uTo, uToSize, uToMap, devPx);
-    float soft = max(uSoftness, 1.0);
-    float reveal = smoothstep(max(0.0, R - soft), R + soft, d);
-    outColor = vec4(mix(from, to, reveal), 1.0);
+  if (uRetract == 1 && R < 0.01) {
+    outColor = vec4(sampleDoc(uTo, uToSize, uToMap, devPx), 1.0);
     return;
   }
 
