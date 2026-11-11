@@ -43,10 +43,6 @@ function App() {
     inkRef.current=ink;
     return ()=>{inkRef.current=null;canvas.remove();};
   },[]);
-  useEffect(()=>{
-    document.documentElement.dataset.theme=theme;
-    try{localStorage.setItem("ayush-portfolio-theme",theme);}catch{}
-  },[theme]);
   const toggleTheme=(event)=>{
     // Read the live DOM theme: InkTransition flips it synchronously, while React state
     // may still be one render behind during rapid taps or an interrupted animation.
@@ -55,6 +51,7 @@ function App() {
     const point={x:event?.clientX??window.innerWidth/2,y:event?.clientY??window.innerHeight/2};
     if(inkRef.current){inkRef.current.toggle(point);}
     else{document.documentElement.dataset.theme=next;}
+    try{localStorage.setItem("ayush-portfolio-theme",next);}catch{}
     setTheme(next);
   };
   const links=[["01","Profile","#about"],["02","Education","#education"],["03","Focus","#focus"],["04","Journey","#journey"],["05","Tools","#skills"],["06","Work","#work"]];
