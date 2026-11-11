@@ -181,3 +181,59 @@ body{background:var(--bg);color:var(--paper)}
 @media(prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
 }
+
+
+/* Stronger typography and contrast in light mode */
+:root[data-theme="light"]{
+  --muted:#55514b;
+  --gold:#79521f;
+  --line:rgba(35,31,26,.24);
+}
+:root[data-theme="light"] .hero-topline,
+:root[data-theme="light"] .hero-bottom,
+:root[data-theme="light"] .art-index,
+:root[data-theme="light"] .section-label,
+:root[data-theme="light"] .footer,
+:root[data-theme="light"] .footer>a:not(.brand){
+  color:#57534d;
+  font-weight:500;
+}
+:root[data-theme="light"] .hero-topline span:first-child,
+:root[data-theme="light"] .under-link,
+:root[data-theme="light"] .profile-tags span,
+:root[data-theme="light"] .body-copy>p,
+:root[data-theme="light"] .hero-desc,
+:root[data-theme="light"] .focus-row p,
+:root[data-theme="light"] .timeline-row small,
+:root[data-theme="light"] .project-meta p,
+:root[data-theme="light"] .contact-foot p{
+  color:#4f4b45;
+  font-weight:500;
+}
+:root[data-theme="light"] .gold-label,
+:root[data-theme="light"] .art-stamp,
+:root[data-theme="light"] .section-label span:first-child,
+:root[data-theme="light"] .number{
+  color:#79521f;
+  font-weight:600;
+}
+:root[data-theme="light"] .portrait-mark{
+  color:#c9bda9;
+}
+:root[data-theme="light"] .hero h1,
+:root[data-theme="light"] .about-grid h2,
+:root[data-theme="light"] .section-heading,
+:root[data-theme="light"] .contact h2,
+:root[data-theme="light"] .focus-row h3,
+:root[data-theme="light"] .timeline-row h3,
+:root[data-theme="light"] .project-meta h3,
+:root[data-theme="light"] .skill-card h3{
+  color:#171715;
+  font-weight:600;
+}
+:root[data-theme="light"] .under-link{
+  border-bottom-color:#79521f;
+}
+:root[data-theme="light"] .hero-topline i{
+  box-shadow:none;
+}
