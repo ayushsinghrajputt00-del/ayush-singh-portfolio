@@ -43,6 +43,10 @@ function App() {
     inkRef.current=ink;
     return ()=>{inkRef.current=null;canvas.remove();};
   },[]);
+  useEffect(()=>{
+    document.documentElement.dataset.theme=theme;
+    try{localStorage.setItem("ayush-portfolio-theme",theme);}catch{}
+  },[theme]);
   const toggleTheme=(event)=>{
     // Read the live DOM theme: InkTransition flips it synchronously, while React state
     // may still be one render behind during rapid taps or an interrupted animation.
