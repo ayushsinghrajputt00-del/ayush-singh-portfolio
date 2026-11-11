@@ -54,6 +54,7 @@ export class InkTransition {
   private cssFadeTimer = 0;
   private replayTimer = 0;
   private last: ClickRecord | null = null;
+  private pendingToggle: { point?: Point; seed?: InkFrame['seed'] } | null = null;
 
   private captureGen = 0;
   private capturing = false;
@@ -131,9 +132,16 @@ export class InkTransition {
       (interrupting || renderer.hasValid(getTheme(), key));
 
     if (!canAnimate || !renderer) {
+      // On mobile, html2canvas may still be preparing one of the two theme
+      // snapshots. Do not silently replace the requested ink transition with a
+      // plain fade: remember the latest tap and start once both snapshots are valid.
+      if (renderer && !renderer.isLost && !reducedMotion.matches) {
+        this.pendingToggle = { point, seed };
+        this.scheduleCapture(0);
+        return;
+      }
       this.cancel();
       this.crossFade(to);
-      if (renderer && !reducedMotion.matches) this.scheduleCapture(0);
       return;
     }
 
@@ -326,6 +334,21 @@ export class InkTransition {
       console.error('[ink] capture failed', err);
     } finally {
       this.capturing = false;
+    }
+
+    if (this.pendingToggle) {
+      const keyNow = layoutKey(renderScale());
+      const ready = renderer.hasValid(getTheme(), keyNow) && renderer.hasValid(otherTheme(getTheme()), keyNow);
+      if (ready) {
+        const pending = this.pendingToggle;
+        this.pendingToggle = null;
+        this.toggle(pending.point, pending.seed);
+      } else if (!this.captureQueued) {
+        // Snapshot capture failed: avoid leaving the control stuck; use the safe
+        // CSS transition for this request and let a later interaction retry WebGL.
+        this.pendingToggle = null;
+        this.crossFade(otherTheme(getTheme()));
+      }
     }
     if (this.captureQueued) this.scheduleCapture(RESIZE_DEBOUNCE_MS);
   }
