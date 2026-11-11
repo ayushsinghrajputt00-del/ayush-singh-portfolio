@@ -314,3 +314,26 @@ body{background:var(--bg);color:var(--paper)}
   .cookie-reject,.cookie-accept{flex:1}
   .cookie-details>div,.cookie-details>label{align-items:flex-start}
 }
+
+
+/* Final theme animation: reliable click-origin reveal on mobile and desktop */
+::view-transition-group(root){animation-duration:700ms}
+::view-transition-image-pair(root){isolation:isolate}
+::view-transition-old(root){
+  animation:theme-fade-out 220ms ease both;
+}
+::view-transition-new(root){
+  animation:theme-circle-in 700ms cubic-bezier(.2,.75,.25,1) both;
+}
+@keyframes theme-circle-in{
+  from{clip-path:circle(0 at var(--theme-x,50vw) var(--theme-y,50vh))}
+  to{clip-path:circle(160vmax at var(--theme-x,50vw) var(--theme-y,50vh))}
+}
+@keyframes theme-fade-out{
+  to{opacity:.35}
+}
+@media(prefers-reduced-motion:reduce){
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root){animation:none!important}
+}
