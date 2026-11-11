@@ -25,6 +25,10 @@ function App() {
   const [menu,setMenu]=React.useState(false);
   const [theme,setTheme]=React.useState(()=>document.documentElement.dataset.theme==="light"?"light":"dark");
   const [formStatus,setFormStatus]=React.useState({type:"",message:""});
+  const [cookieVisible,setCookieVisible]=React.useState(()=>{try{return !localStorage.getItem("ayush-cookie-choice");}catch{return true;}});
+  const [optionalCookies,setOptionalCookies]=React.useState(false);
+  const saveCookieChoice=(allowOptional)=>{try{localStorage.setItem("ayush-cookie-choice",JSON.stringify({necessary:true,optional:allowOptional,updatedAt:new Date().toISOString()}));}catch{}setCookieVisible(false);};
+
   useEffect(()=>{
     document.documentElement.dataset.theme=theme;
     try{localStorage.setItem("ayush-portfolio-theme",theme);}catch{}
@@ -133,6 +137,13 @@ function App() {
       </form></section>
     </main>
     <footer className="footer shell"><a className="brand" href="#top">AS<span>_</span></a><span>© {new Date().getFullYear()} AYUSH SINGH / INDIA</span><a href="https://www.instagram.com/iiuss__/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><a href="https://github.com/ayushsinghrajputt00-del" target="_blank" rel="noopener noreferrer">GITHUB ↗</a><a href="mailto:ayushsinghrajput00@gmail.com">EMAIL ↗</a><a href="tel:+919354895707">CALL ↗</a><a href="/privacy.html">PRIVACY</a><a href="/terms.html">TERMS</a><a href="#top">BACK TO TOP ↑</a><small>BUILT WITH INTENTION.</small></footer>
+    {cookieVisible&&<aside className="cookie-banner" role="dialog" aria-label="Cookie preferences" aria-describedby="cookie-description">
+      <div className="cookie-copy"><span className="cookie-kicker">PRIVACY / YOUR CHOICE</span><h2>Cookies, your call.</h2><p id="cookie-description">This site uses essential browser storage to remember your theme and this choice. It does not currently use analytics or advertising cookies.</p></div>
+      <label className="cookie-option"><input type="checkbox" checked={optionalCookies} onChange={e=>setOptionalCookies(e.target.checked)}/><span>Allow optional cookies if added in the future</span></label>
+      <div className="cookie-actions"><button type="button" className="cookie-reject" onClick={()=>saveCookieChoice(false)}>Reject optional</button><button type="button" className="cookie-accept" onClick={()=>saveCookieChoice(optionalCookies)}>Save choice <span>↗</span></button></div>
+      <a className="cookie-policy" href="/privacy.html">Read privacy policy</a>
+    </aside>}
+
   </>;
 }
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);
