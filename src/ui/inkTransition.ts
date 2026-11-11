@@ -97,7 +97,7 @@ export class InkTransition {
   }
 
   get isAnimating(): boolean {
-    return this.frame !== null;
+    return this.frame !== null || document.documentElement.classList.contains('theme-fade');
   }
 
   /** The most recent click, for "replay last click". */
