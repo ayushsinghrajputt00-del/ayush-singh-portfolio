@@ -77,11 +77,7 @@ export async function capturePage(theme: Theme, scale: number, maxTextureSize: n
       // backgrounds to equivalent solid theme colours in the snapshot clone so
       // html2canvas can rasterise the page consistently on mobile browsers.
       const light = theme === 'light';
-      const root = doc.documentElement;
       const bg = light ? '#f2efe8' : '#090a0b';
-      const paper = light ? '#20201e' : '#eeeae3';
-      const gold = light ? '#79521f' : '#c9aa75';
-      const red = light ? '#a9473b' : '#c45b4d';
       doc.body.style.backgroundColor = bg;
       doc.querySelectorAll<HTMLElement>('.header').forEach((el) => { el.style.backgroundColor = bg; });
       doc.querySelectorAll<HTMLElement>('.project-card,.contact-form').forEach((el) => {
