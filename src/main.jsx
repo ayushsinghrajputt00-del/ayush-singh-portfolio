@@ -94,7 +94,7 @@ function App() {
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="gold-label">STUDENT · CREATOR · CURIOUS MIND</p>
-            <h1>KALA<br/><em>by karn</em></h1>
+            <h1>AYUSH<span className="red-dot">.</span><br/><em>Singh</em></h1>
             <p className="hero-desc">I am a BCA student at IGNOU learning web development and software fundamentals. I build small React and Python projects to practise coding, solve practical problems and improve through hands-on work.</p>
             <div className="hero-links"><a className="button" href="#about">Explore profile <span>↘</span></a><a className="under-link" href="#work">View selected work ↗</a></div>
           </div>
